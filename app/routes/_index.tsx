@@ -7,10 +7,10 @@ import { humanId } from "human-id";
 import styles from "~/styles/home.css";
 import { useState } from "react";
 
-const provider = new GithubAuthProvider();
-const auth = getAuth();
-
 const signIn = (setUser) => {
+  const provider = new GithubAuthProvider();
+  const auth = getAuth();
+
   signInWithPopup(auth, provider)
     .then((result) => {
       // This gives you a GitHub Access Token. You can use it to access the GitHub API.
