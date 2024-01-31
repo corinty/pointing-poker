@@ -1,4 +1,0 @@
-/* Removing base styles becuase we want to use simple.css */
-/* @tailwind base; */
-@tailwind components;
-@tailwind utilities;
