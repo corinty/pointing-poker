@@ -1,37 +1,30 @@
-import { getAuth, signInWithPopup, GithubAuthProvider } from "firebase/auth";
+import { userRepository } from "~/db/users";
+import { getAuth, signInWithPopup, GithubAuthProvider, User } from "firebase/auth";
 
-import type { ActionFunctionArgs, LinksFunction, MetaFunction } from "@remix-run/node";
-import { Form, json, redirect, useNavigate, useNavigation } from "@remix-run/react";
-import { getDocs, collection, setDoc, doc } from "firebase/firestore";
+import type { ActionFunctionArgs, LinksFunction } from "@remix-run/node";
+import { Form, redirect, useNavigate } from "@remix-run/react";
 import { humanId } from "human-id";
-import { db } from "~/db/firestore";
 import styles from "~/styles/home.css";
+import { useState } from "react";
+import { initializeFirestore } from "~/db/firestore";
 
-const provider = new GithubAuthProvider();
-const auth = getAuth();
+const signIn = (setUser) => {
+  const provider = new GithubAuthProvider();
+  const auth = getAuth();
 
-const signIn = () => {
   signInWithPopup(auth, provider)
     .then((result) => {
       // This gives you a GitHub Access Token. You can use it to access the GitHub API.
       const credential = GithubAuthProvider.credentialFromResult(result);
       const token = credential?.accessToken;
 
-      // The signed-in user info.
-      const user = result.user;
-      // IdP data available using getAdditionalUserInfo(result)
-      // ...
-      setDoc(doc(db, "users", user.uid), {
-        name: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-      });
-      // look in the db for the user
-      // nothing if they exist
-      // add them if they don't
-    })
-    .catch((error) => {
-      // Handle Errors here.
+    // The signed-in user info.
+    const user = result.user;
+
+    setUser(user);
+    userRepository.save(user);
+  }).catch((error) => {
+    // Handle Errors here.
 
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -55,7 +48,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
+  initializeFirestore();
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  getAuth().onAuthStateChanged(function(user) {
+    if (user) {
+      setUser(user);
+    }
+  });
+
   return (
     <div>
       <h1>♣️ Welcome to Pointing Poker</h1>
