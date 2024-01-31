@@ -49,6 +49,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Index() {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  getAuth().onAuthStateChanged(function(user) {
+    if (user) {
+      setUser(user);
+    }
+  });
 
   return (
     <div>
