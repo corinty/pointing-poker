@@ -1,9 +1,12 @@
 import { useParams } from "@remix-run/react";
 import { Fragment, useState } from "react";
+import { useCollection, useCollectionData, useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import Confetti from "react-confetti";
 import { useWindowSize } from "~/utils/useWindowSize";
 import styles from "~/styles/room.css";
 import { LinksFunction } from "@remix-run/node";
+import { collection, doc, getDoc } from "firebase/firestore";
+import { db } from "~/db/firestore";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
@@ -14,6 +17,9 @@ export default function Room() {
   const { roomId } = useParams();
   const { width, height } = useWindowSize();
   const [shouldShowConfetti, setConfetti] = useState(false);
+
+  if (!roomId) throw Error("missing param");
+
 
   const showConfetti = () => {
     setConfetti(true);
@@ -31,7 +37,7 @@ export default function Room() {
       <h1>Room: {roomId}</h1>
       <div>
         <h3>Issue Title</h3>
-        <textarea>Story Title</textarea>
+        <textarea defaultValue={"Story Title"} />
       </div>
       <hr />
       <div className="points">
@@ -52,6 +58,7 @@ export default function Room() {
           </Fragment>
         ))}
       </div>
+
       <button onClick={showConfetti}>Party Time</button>
       {shouldShowConfetti && <Confetti width={width} height={height} />}
     </div>
