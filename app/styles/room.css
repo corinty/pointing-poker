@@ -1,4 +1,4 @@
-.pointSubmissions{
+.points{
   @apply gap-2;
   display: grid;
   grid-template-columns: repeat(4,1fr);
@@ -6,4 +6,10 @@
   button{
     margin: 0;
   }
+}
+.submissions{
+  @apply gap-1;
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+
 }
