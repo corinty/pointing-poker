@@ -2,13 +2,19 @@ import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import simpledotcss from "simpledotcss/simple.css";
+import styles from "~/globals.css";
 
-const simpleCss = {
-  rel: "stylesheet",
-  href: simpledotcss,
-};
-
-export const links: LinksFunction = () => [...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }, simpleCss] : [simpleCss])];
+export const links: LinksFunction = () => [
+  {
+    rel: "stylesheet",
+    href: styles,
+  },
+  {
+    rel: "stylesheet",
+    href: simpledotcss,
+  },
+  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+];
 
 export default function App() {
   return (
@@ -20,6 +26,9 @@ export default function App() {
         <Links />
       </head>
       <body>
+        <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
+          <a href="/">Home</a>
+        </nav>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
