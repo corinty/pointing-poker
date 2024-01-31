@@ -1,55 +1,25 @@
-import type { MetaFunction, LinksFunction, LoaderArgs } from '@vercel/remix';
+import { cssBundleHref } from "@remix-run/css-bundle";
+import type { LinksFunction } from "@remix-run/node";
+import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
+import simpledotcss from "simpledotcss/simple.css";
 
-import {
-  Links,
-  LiveReload,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from '@remix-run/react';
-import NavigationSwitcher from '~/nav';
-
-import mainCss from '~/styles/main.css';
-
-export function loader({ request }: LoaderArgs) {
-  return {
-    host: request.headers.get('x-forwarded-host'),
-  };
-}
-
-export const meta: MetaFunction<typeof loader> = ({ data: { host } }) => ({
-  charset: 'utf-8',
-  title: 'Remix on Vercel Edge Functions',
-  description: 'HTML, dynamically rendered in a city near you',
-  'twitter:card': 'summary_large_image',
-  'twitter:site': '@vercel',
-  'twitter:creator': '@vercel',
-  'twitter:title': 'Remix on Vercel Edge Functions',
-  'twitter:description': 'HTML, dynamically rendered in a city near you',
-  'twitter:image': `https://${host}/og-card.png`,
-  'twitter:image:alt': 'The Vercel and Remix logos',
-  viewport: 'width=device-width,initial-scale=1',
-});
-
-export const links: LinksFunction = () => {
-  return [
-    {
-      rel: 'stylesheet',
-      href: mainCss,
-    },
-  ];
+const simpleCss = {
+  rel: "stylesheet",
+  href: simpledotcss,
 };
+
+export const links: LinksFunction = () => [...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }, simpleCss] : [simpleCss])];
 
 export default function App() {
   return (
     <html lang="en">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
       <body>
-        <NavigationSwitcher />
         <Outlet />
         <ScrollRestoration />
         <Scripts />
