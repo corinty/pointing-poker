@@ -18,13 +18,14 @@ const signIn = (setUser) => {
       const credential = GithubAuthProvider.credentialFromResult(result);
       const token = credential?.accessToken;
 
-    // The signed-in user info.
-    const user = result.user;
+      // The signed-in user info.
+      const user = result.user;
 
-    setUser(user);
-    userRepository.save(user);
-  }).catch((error) => {
-    // Handle Errors here.
+      setUser(user);
+      userRepository.save(user);
+    })
+    .catch((error) => {
+      // Handle Errors here.
 
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -51,7 +52,7 @@ export default function Index() {
   initializeFirestore();
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
-  getAuth().onAuthStateChanged(function(user) {
+  getAuth().onAuthStateChanged(function (user) {
     if (user) {
       setUser(user);
     }
@@ -61,7 +62,7 @@ export default function Index() {
     <div>
       <h1>♣️ Welcome to Pointing Poker</h1>
       <section>
-        <Form className="room-selection" action="POST">
+        <div className="room-selection">
           <div></div>
           <button
             onClick={() => {
@@ -76,9 +77,13 @@ export default function Index() {
           >
             Create Room
           </button>
-          <input name="join-room-code" pattern="^[a-z\-]*$" required />
-          <button type="submit">Join Room</button>
-        </Form>
+          <Form className="flex col-span-2 gap-4" method="post">
+            <input name="join-room-code" className="w-1/2" pattern="^[a-z\-]*$" required />
+            <button type="submit" className="w-1/2">
+              Join Room
+            </button>
+          </Form>
+        </div>
       </section>
     </div>
   );
