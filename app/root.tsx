@@ -26,6 +26,9 @@ export default function App() {
         <Links />
       </head>
       <body>
+        <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
+          <a href="/">Home</a>
+        </nav>
         <Outlet />
         <ScrollRestoration />
         <Scripts />

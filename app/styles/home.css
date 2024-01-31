@@ -1,0 +1,12 @@
+.room-selection{
+  @apply grid gap-4;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(50px,auto);
+
+  button{
+    margin: 0;
+  }
+  input{
+    height: 100%;
+  }
+}
