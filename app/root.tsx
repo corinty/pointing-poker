@@ -2,13 +2,20 @@ import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import simpledotcss from "simpledotcss/simple.css";
+import stylesheet from "~/tailwind.css";
 
-const simpleCss = {
-  rel: "stylesheet",
-  href: simpledotcss,
-};
+const globalStyles = [
+  {
+    rel: "stylesheet",
+    href: stylesheet,
+  },
+  {
+    rel: "stylesheet",
+    href: simpledotcss,
+  },
+];
 
-export const links: LinksFunction = () => [...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }, simpleCss] : [simpleCss])];
+export const links: LinksFunction = () => [...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }, ...globalStyles] : globalStyles)];
 
 export default function App() {
   return (
