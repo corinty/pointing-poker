@@ -1,3 +1,5 @@
+import type { MetaFunction } from "@remix-run/node";
+import { userRepository } from "~/db/users";
 import { getAuth, signInWithPopup, GithubAuthProvider } from "firebase/auth";
 
 import type { ActionFunctionArgs, LinksFunction, MetaFunction } from "@remix-run/node";
@@ -17,21 +19,12 @@ const signIn = () => {
       const credential = GithubAuthProvider.credentialFromResult(result);
       const token = credential?.accessToken;
 
-      // The signed-in user info.
-      const user = result.user;
-      // IdP data available using getAdditionalUserInfo(result)
-      // ...
-      setDoc(doc(db, "users", user.uid), {
-        name: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-      });
-      // look in the db for the user
-      // nothing if they exist
-      // add them if they don't
-    })
-    .catch((error) => {
-      // Handle Errors here.
+    // The signed-in user info.
+    const user = result.user;
+
+    userRepository.save(user);
+  }).catch((error) => {
+    // Handle Errors here.
 
       const errorCode = error.code;
       const errorMessage = error.message;
