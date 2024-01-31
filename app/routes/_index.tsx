@@ -6,6 +6,7 @@ import { Form, redirect, useNavigate } from "@remix-run/react";
 import { humanId } from "human-id";
 import styles from "~/styles/home.css";
 import { useState } from "react";
+import { initializeFirestore } from "~/db/firestore";
 
 const signIn = (setUser) => {
   const provider = new GithubAuthProvider();
@@ -47,6 +48,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
+  initializeFirestore();
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   getAuth().onAuthStateChanged(function(user) {
