@@ -1,14 +1,17 @@
-import { Suspense } from 'react';
-import { defer } from '@vercel/remix';
-import type { LoaderArgs } from '@vercel/remix';
-import { Await, useLoaderData } from '@remix-run/react';
+import { Suspense } from "react";
+import { defer } from "@vercel/remix";
+import type { LoaderArgs } from "@vercel/remix";
+import { Await, useLoaderData } from "@remix-run/react";
 
-import { Footer } from '~/components/footer';
-import { Region } from '~/components/region';
-import { Illustration } from '~/components/illustration';
-import { parseVercelId } from '~/parse-vercel-id';
+import { Footer } from "~/components/footer";
+import { Region } from "~/components/region";
+import { Illustration } from "~/components/illustration";
+import { parseVercelId } from "~/parse-vercel-id";
 
-export const config = { runtime: 'edge' };
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "~/db/firestore";
+
+export const config = { runtime: "edge" };
 
 let isCold = true;
 let initialDate = Date.now();
@@ -33,31 +36,35 @@ function sleep(val: any, ms: number) {
 
 export function headers() {
   return {
-    'x-edge-age': Date.now() - initialDate,
+    "x-edge-age": Date.now() - initialDate,
   };
 }
 
 export default function App() {
   const { proxyRegion, computeRegion, isCold, date } = useLoaderData<typeof loader>();
+
+  const querySnapshot = getDocs(collection(db, "users")).then((thing) => {
+    thing.forEach((doc) => {
+      console.log(`${doc.id} => ${doc.data()}`, doc.data());
+    });
+  });
+
   return (
     <>
       <main>
         <Illustration />
+        <h1>Hello there</h1>
         <div className="meta">
           <div className="info">
             <span>Proxy Region</span>
             <Suspense fallback={<strong>Loading...</strong>}>
-              <Await resolve={proxyRegion}>
-                {(region) => <Region region={region} />}
-              </Await>
+              <Await resolve={proxyRegion}>{(region) => <Region region={region} />}</Await>
             </Suspense>
           </div>
           <div className="info">
             <span>Compute Region</span>
             <Suspense fallback={<strong>Loading...</strong>}>
-              <Await resolve={computeRegion}>
-                {(region) => <Region region={region} />}
-              </Await>
+              <Await resolve={computeRegion}>{(region) => <Region region={region} />}</Await>
             </Suspense>
           </div>
         </div>
@@ -66,11 +73,7 @@ export default function App() {
       <Footer>
         <p>
           Generated at {date} <span data-break /> ({isCold ? "cold" : "hot"}) by{" "}
-          <a
-            href="https://vercel.com/docs/concepts/functions/edge-functions"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href="https://vercel.com/docs/concepts/functions/edge-functions" target="_blank" rel="noreferrer">
             Vercel Edge Runtime
           </a>
         </p>
