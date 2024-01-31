@@ -1,18 +1,16 @@
-import type { MetaFunction } from "@remix-run/node";
 import { userRepository } from "~/db/users";
-import { getAuth, signInWithPopup, GithubAuthProvider } from "firebase/auth";
+import { getAuth, signInWithPopup, GithubAuthProvider, User } from "firebase/auth";
 
-import type { ActionFunctionArgs, LinksFunction, MetaFunction } from "@remix-run/node";
-import { Form, json, redirect, useNavigate, useNavigation } from "@remix-run/react";
-import { getDocs, collection, setDoc, doc } from "firebase/firestore";
+import type { ActionFunctionArgs, LinksFunction } from "@remix-run/node";
+import { Form, redirect, useNavigate } from "@remix-run/react";
 import { humanId } from "human-id";
-import { db } from "~/db/firestore";
 import styles from "~/styles/home.css";
+import { useState } from "react";
 
 const provider = new GithubAuthProvider();
 const auth = getAuth();
 
-const signIn = () => {
+const signIn = (setUser) => {
   signInWithPopup(auth, provider)
     .then((result) => {
       // This gives you a GitHub Access Token. You can use it to access the GitHub API.
@@ -22,6 +20,7 @@ const signIn = () => {
     // The signed-in user info.
     const user = result.user;
 
+    setUser(user);
     userRepository.save(user);
   }).catch((error) => {
     // Handle Errors here.
@@ -48,7 +47,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+
   return (
     <div>
       <h1>♣️ Welcome to Pointing Poker</h1>
