@@ -30,13 +30,14 @@ const signIn = (setUser) => {
       const credential = GithubAuthProvider.credentialFromResult(result);
       const token = credential?.accessToken;
 
-    // The signed-in user info.
-    const user = result.user;
+      // The signed-in user info.
+      const user = result.user;
 
-    setUser(user);
-    userRepository.save(user);
-  }).catch((error) => {
-    // Handle Errors here.
+      setUser(user);
+      userRepository.save(user);
+    })
+    .catch((error) => {
+      // Handle Errors here.
 
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -48,7 +49,6 @@ const signIn = (setUser) => {
       // ...
     });
 };
-
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -72,16 +72,18 @@ export default function App() {
         <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
           <a href="/">Home</a>
           {!loading && user && <div className="float-right">{user.displayName}</div>}
-          {!loading && !user && <button onClick={() => signIn(setUser)} className="float-right">Sign in</button>}
+          {!loading && !user && (
+            <button onClick={() => signIn(setUser)} className="float-right">
+              Sign in
+            </button>
+          )}
         </nav>
         {!loading && user && (
           <UserContext.Provider value={user}>
             <Outlet />
           </UserContext.Provider>
         )}
-        {!loading && !user && (
-          <Outlet />
-        )}
+        {!loading && !user && <Outlet />}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

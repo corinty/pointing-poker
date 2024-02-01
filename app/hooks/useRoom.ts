@@ -2,15 +2,10 @@ import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useCollectionData, useDocumentData } from "react-firebase-hooks/firestore";
 import { db } from "~/db/firestore";
-import { roomsRepository } from "~/db/rooms";
+import { type Room, roomsRepository } from "~/db/rooms";
 import { useCurrentUser } from "./useCurrentUser";
 import { User } from "firebase/auth";
 import { useBeforeUnload } from "@remix-run/react";
-
-interface Room {
-  activeStory: string;
-  users: User[];
-}
 
 export function useRoom(roomId: string) {
   const currentUser = useCurrentUser();
@@ -19,11 +14,9 @@ export function useRoom(roomId: string) {
   const [stories, setStories] = useState<{ [key: string]: any } | null>(null);
   if (!currentUser) throw Error("No current user");
 
-  useBeforeUnload(
-    () => {
-      roomsRepository.removeUser(roomId, currentUser)
-    }
-  );
+  useBeforeUnload(() => {
+    roomsRepository.removeUser(roomId, currentUser);
+  });
 
   useEffect(() => {
     const unsubRoom = onSnapshot(doc(db, "rooms", roomId), {
@@ -31,11 +24,11 @@ export function useRoom(roomId: string) {
         if (!snapshot.exists()) {
           const room = await roomsRepository.createRoom(roomId, currentUser);
 
-          setRoom(await room as Room);
+          setRoom((await room) as Room);
         } else {
           const room = await roomsRepository.joinUser(roomId, currentUser);
 
-          setRoom(await room as Room);
+          setRoom((await room) as Room);
         }
       },
     });
@@ -54,16 +47,15 @@ export function useRoom(roomId: string) {
     });
 
     return () => {
-      roomsRepository.removeUser(roomId, currentUser)
+      roomsRepository.removeUser(roomId, currentUser);
       unsubRoom();
       unsubRoom();
     };
   }, [roomId]);
-  if (!room || !stories) return { activeStory: null, room: null, stories: null, loading: true };
+  if (!room || !stories) return { loading: true };
 
   return {
     loading: false,
-    activeStory: stories[room.activeStory],
     room,
     stories,
   };
