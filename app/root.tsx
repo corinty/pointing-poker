@@ -2,7 +2,7 @@ import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import { GithubAuthProvider, User, getAuth, signInWithPopup } from "firebase/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import simpledotcss from "simpledotcss/simple.css";
 import styles from "~/globals.css";
 import { userRepository } from "./db/users";
@@ -53,12 +53,14 @@ const signIn = (setUser) => {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  getAuth().onAuthStateChanged((user) => {
-    if (user) {
-      setUser(user);
-    }
-    setLoading(false);
-  });
+  useEffect(() => {
+    getAuth().onAuthStateChanged((user) => {
+      if (user) {
+        setUser(user);
+      }
+      setLoading(false);
+    });
+  })
 
   return (
     <html lang="en">
