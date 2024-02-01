@@ -55,3 +55,6 @@ Make sure to deploy the output of `remix build`
 ## Using Pointing Poker
 
 Live build [here](https://pointing-poker-iota.vercel.app)
+
+- [Firebase users](https://console.firebase.google.com/project/shopifolk-pointing-poker/authentication/users)
+- [Firestore database](https://console.firebase.google.com/project/shopifolk-pointing-poker/firestore)
