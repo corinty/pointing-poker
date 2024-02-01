@@ -1,4 +1,4 @@
-import { setDoc, doc, getDoc, arrayUnion, arrayRemove, updateDoc, QueryDocumentSnapshot, SnapshotOptions, DocumentReference } from "firebase/firestore";
+import { setDoc, doc, getDoc, arrayUnion, arrayRemove, updateDoc, DocumentReference } from "firebase/firestore";
 import { db } from "./firestore";
 import { type User, userRepository } from "~/db/users";
 

@@ -1,19 +1,10 @@
 import {
-  setDoc,
   doc,
-  getDoc,
-  arrayUnion,
-  arrayRemove,
-  updateDoc,
-  QueryDocumentSnapshot,
-  SnapshotOptions,
-  DocumentReference,
+  getDoc, updateDoc, DocumentReference,
   DocumentSnapshot,
-  onSnapshot,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "./firestore";
-import { User } from "firebase/auth";
-import { userRepository } from "./users";
 
 export interface Story {
   description: string;

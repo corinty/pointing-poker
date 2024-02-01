@@ -1,6 +1,4 @@
-import { DocumentReference, doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
-import { db } from "~/db/firestore";
+import { useEffect, useState } from "react";
 import { Story, storyRepository } from "~/db/story";
 import { useCurrentUser } from "./useCurrentUser";
 

@@ -1,16 +1,14 @@
-import { useParams } from "@remix-run/react";
-import { Fragment, useState } from "react";
-import { useCollection, useCollectionData, useDocument, useDocumentData } from "react-firebase-hooks/firestore";
-import Confetti from "react-confetti";
-import { useWindowSize } from "~/utils/useWindowSize";
-import styles from "~/styles/room.css";
 import { LinksFunction } from "@remix-run/node";
-import { collection, doc, getDoc, setDoc } from "firebase/firestore";
+import { useParams } from "@remix-run/react";
+import { doc, setDoc } from "firebase/firestore";
+import { Fragment, useState } from "react";
+import Confetti from "react-confetti";
 import { db } from "~/db/firestore";
-import { useRoom } from "~/hooks/useRoom";
-import { act } from "react-dom/test-utils";
 import { useActiveStory } from "~/hooks/useActiveStory";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
+import { useRoom } from "~/hooks/useRoom";
+import styles from "~/styles/room.css";
+import { useWindowSize } from "~/utils/useWindowSize";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 

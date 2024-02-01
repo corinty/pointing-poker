@@ -1,10 +1,8 @@
-import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { useCollectionData, useDocumentData } from "react-firebase-hooks/firestore";
 import { db } from "~/db/firestore";
 import { type Room, roomsRepository } from "~/db/rooms";
 import { useCurrentUser } from "./useCurrentUser";
-import { User } from "firebase/auth";
 import { useBeforeUnload } from "@remix-run/react";
 
 export function useRoom(roomId: string) {
