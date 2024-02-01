@@ -14,12 +14,10 @@ import { useWindowSize } from "~/utils/useWindowSize";
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
-const tempPlayers = ["Tina", "Alex", "Aram"];
 
 export default function Room() {
   const { roomId } = useParams();
   const { width, height } = useWindowSize();
-  usePresence();
   const [shouldShowConfetti, setConfetti] = useState(false);
   const currentUser = useCurrentUser();
 

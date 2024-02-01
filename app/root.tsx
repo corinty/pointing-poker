@@ -1,12 +1,13 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
-import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
+import { Link, Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import { GithubAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import { useEffect, useState } from "react";
 import simpledotcss from "simpledotcss/simple.css";
 import styles from "~/globals.css";
 import { User, userRepository } from "./db/users";
 import { UserContext } from "./hooks/useCurrentUser";
+import { usePresence } from "./hooks/usePresence";
 
 export const links: LinksFunction = () => [
   {
@@ -57,12 +58,12 @@ export default function App() {
   useEffect(() => {
     getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
-        const user = userRepository.fromFirebaseToUser(firebaseUser)
+        const user = userRepository.fromFirebaseToUser(firebaseUser);
         setUser(user);
       }
       setLoading(false);
     });
-  }, [])
+  }, []);
 
   return (
     <html lang="en">
@@ -75,7 +76,7 @@ export default function App() {
       <body>
         <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
           <div>
-            <a href="/">Home</a>
+            <Link to="/">Home</Link>
           </div>
           <div className="sign-in">
             {!loading && user && user.name}
@@ -86,16 +87,21 @@ export default function App() {
             )}
           </div>
         </nav>
-        {!loading && user && (
-          <UserContext.Provider value={user}>
-            <Outlet />
-          </UserContext.Provider>
-        )}
+        {!loading && user && <UserProvider user={user} />}
         {!loading && !user && <Outlet />}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
       </body>
     </html>
+  );
+}
+
+function UserProvider({ user }) {
+  usePresence(user);
+  return (
+    <UserContext.Provider value={user}>
+      <Outlet />
+    </UserContext.Provider>
   );
 }
