@@ -2,6 +2,7 @@ import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useCollectionData, useDocumentData } from "react-firebase-hooks/firestore";
 import { db } from "~/db/firestore";
+import { roomsRepository } from "~/db/rooms";
 
 interface Room {
   activeStory: string;
@@ -15,10 +16,15 @@ export function useRoom(roomId: string) {
   useEffect(() => {
     const unsubRoom = onSnapshot(doc(db, "rooms", roomId), {
       next: async (snapshot) => {
-        if (!snapshot.exists()) return;
-        const room = snapshot.data() as Room;
+        if (!snapshot.exists()) {
+          const room = await roomsRepository.createRoom(roomId);
 
-        setRoom(room);
+          setRoom(room.data() as Room);
+        } else {
+          const room = snapshot.data() as Room;
+
+          setRoom(room);
+        }
       },
     });
 
