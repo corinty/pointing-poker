@@ -6,6 +6,7 @@ import Confetti from "react-confetti";
 import { db } from "~/db/firestore";
 import { useActiveStory } from "~/hooks/useActiveStory";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
+import { usePresence } from "~/hooks/usePresence";
 import { useRoom } from "~/hooks/useRoom";
 import styles from "~/styles/room.css";
 import { useWindowSize } from "~/utils/useWindowSize";
@@ -13,7 +14,6 @@ import { useWindowSize } from "~/utils/useWindowSize";
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
-const tempPlayers = ["Tina", "Alex", "Aram"];
 
 export default function Room() {
   const { roomId } = useParams();
@@ -67,7 +67,9 @@ export default function Room() {
             <Fragment key={player.name}>
               <div className="player text-center">
                 <div>{player.name || player.email}</div>
-                <div><img src={player.photoURL} /></div>
+                <div>
+                  <img src={player.photoURL} />
+                </div>
               </div>
               <div className="text-9xl">{activeStory?.votes[player.uid]}</div>
             </Fragment>

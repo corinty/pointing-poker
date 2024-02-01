@@ -17,19 +17,23 @@ export function useRoom(roomId: string) {
   });
 
   useEffect(() => {
-    const unsubRoom = onSnapshot(doc(db, "rooms", roomId), {
-      next: async (snapshot) => {
-        if (!snapshot.exists()) {
-          const room = await roomsRepository.createRoom(roomId, currentUser);
+    const unsubRoom = onSnapshot(
+      doc(db, "rooms", roomId),
+      {
+        next: async (snapshot) => {
+          if (!snapshot.exists()) {
+            const room = await roomsRepository.createRoom(roomId, currentUser);
 
-          setRoom((await room) as Room);
-        } else {
-          const room = await roomsRepository.joinUser(roomId, currentUser);
+            setRoom((await room) as Room);
+          } else {
+            const room = await roomsRepository.joinUser(roomId, currentUser);
 
-          setRoom((await room) as Room);
-        }
+            setRoom((await room) as Room);
+          }
+        },
       },
-    }, [currentUser]);
+      [currentUser]
+    );
 
     const unsubStories = onSnapshot(collection(db, "rooms", roomId, "stories"), {
       next: async (snapshot) => {
