@@ -46,7 +46,7 @@ export default function Room() {
       <div>
         <h3>Issue:</h3>
         <textarea
-          value={description}
+          value={activeStory.description}
           onChange={async (e) => {
             const value = e.target.value;
             setDoc(doc(db, `rooms/${roomId}/stories/${room!.activeStory}`), { description: value }, { merge: true });
