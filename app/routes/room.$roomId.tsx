@@ -60,15 +60,16 @@ export default function Room() {
       </div>
 
       <div className="submissions">
-        <p className="text-2xl font-bold">Player</p>
-        <p className="text-2xl font-bold">Image</p>
+        <p className="text-2xl font-bold">Person</p>
         <p className="text-2xl font-bold">Points</p>
         {room.users.map((player) => {
           return (
             <Fragment key={player.name}>
-              <div>{player.name}</div>
-              <img src={player.photoURL} />
-              <div>{activeStory?.votes[player.uid]}</div>
+              <div className="player text-center">
+                <div>{player.name || player.email}</div>
+                <div><img src={player.photoURL} /></div>
+              </div>
+              <div className="text-9xl">{activeStory?.votes[player.uid]}</div>
             </Fragment>
           );
         })}
