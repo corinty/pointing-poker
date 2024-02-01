@@ -25,6 +25,8 @@ export function useRoom(roomId: string) {
         } else {
           const room = snapshot.data() as Room;
 
+          roomsRepository.joinUser(roomId, currentUser);
+
           setRoom(room);
         }
       },

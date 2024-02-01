@@ -1,4 +1,4 @@
-import { setDoc, doc, getDoc } from "firebase/firestore";
+import { setDoc, doc, getDoc, arrayUnion, updateDoc } from "firebase/firestore";
 import { db } from "./firestore";
 import { User } from "firebase/auth";
 import { userRepository } from "./users";
@@ -22,6 +22,14 @@ const createRoom = (roomId: string, user: User) => {
     return loadRoom(roomId);
 };
 
+const joinUser = (roomId: string, user: User) => {
+    const roomEventually = loadRoom(roomId);
+    const userReference = userRepository.getReference(user.uid);
+
+    updateDoc(roomReference(roomId), { users: arrayUnion(userReference) });
+}
+
 export const roomsRepository = {
     createRoom: createRoom,
+    joinUser: joinUser,
 };
