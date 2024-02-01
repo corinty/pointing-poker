@@ -1,5 +1,5 @@
 import { User as FirebaseUser } from "firebase/auth";
-import { doc, setDoc, getDocs, collection, getDoc, DocumentReference, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDocs, collection, getDoc, DocumentReference, updateDoc, where, query } from "firebase/firestore";
 import { db } from "~/db/firestore";
 
 export interface User {
@@ -45,6 +45,16 @@ const updateUser = (userId: string, data: Partial<User>) => {
   updateDoc(getReference(userId), data);
 };
 
+const usersInRoom = async (roomId: string) => {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("currentRoom", "==", roomId));
+  return (await getDocs(q)).docs;
+};
+
+const usersInRoomData = async (roomId: string) => {
+  return (await usersInRoom(roomId)).map((s) => s.data());
+};
+
 export const userRepository = {
   save,
   getReference,
@@ -52,4 +62,6 @@ export const userRepository = {
   fromFirebaseToUser,
   updateUser,
   list,
+  usersInRoom,
+  usersInRoomData,
 };

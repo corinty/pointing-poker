@@ -1,16 +1,18 @@
 import { LinksFunction } from "@remix-run/node";
 import { useParams } from "@remix-run/react";
 import { doc, setDoc } from "firebase/firestore";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import CopyCurrentUrlToClipboard from "~/components/CopyCurrentUrlToClipboard";
 import { db } from "~/db/firestore";
 import { useActiveStory } from "~/hooks/useActiveStory";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { usePresence } from "~/hooks/usePresence";
+import { usePresentUsers } from "~/hooks/usePresentUsers";
 import { useRoom } from "~/hooks/useRoom";
 import styles from "~/styles/room.css";
 import { useWindowSize } from "~/utils/useWindowSize";
+import _ from "lodash";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
@@ -28,15 +30,17 @@ export default function Room() {
 
   const { room, stories, loading } = useRoom(roomId);
 
+  const { data: usersData, loading: usersLoading } = usePresentUsers(roomId);
   const { loading: activeStoryLoading, data: activeStory, submitVote, currentUserVote } = useActiveStory(roomId, room?.activeStoryId);
-  if (loading || !room || activeStoryLoading) return;
 
-  const showConfetti = () => {
-    setConfetti(true);
-    setTimeout(() => {
-      setConfetti(false);
-    }, 5000);
-  };
+  useEffect(() => {
+    if (!activeStory) return;
+    const votes = Object.values(activeStory.votes);
+    const hasConsensus = votes.every((vote) => vote == votes[0]);
+
+    if (hasConsensus) setConfetti(hasConsensus);
+  }, [activeStory]);
+  if (loading || !room || !activeStory || usersLoading) return;
 
   return (
     <div className="flex flex-col gap-2">
@@ -64,7 +68,7 @@ export default function Room() {
       <div className="submissions">
         <p className="text-2xl font-bold">Person</p>
         <p className="text-2xl font-bold">Points</p>
-        {room.users.map((player) => {
+        {usersData!.map((player) => {
           return (
             <Fragment key={player.name}>
               <div className="player text-center">
@@ -79,8 +83,7 @@ export default function Room() {
         })}
       </div>
 
-      <button onClick={showConfetti}>Party Time</button>
       {shouldShowConfetti && <Confetti width={width} height={height} />}
-    </div >
+    </div>
   );
 }
