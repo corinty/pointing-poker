@@ -3,6 +3,7 @@ import { useParams } from "@remix-run/react";
 import { doc, setDoc } from "firebase/firestore";
 import { Fragment, useState } from "react";
 import Confetti from "react-confetti";
+import CopyCurrentUrlToClipboard from "~/components/CopyCurrentUrlToClipboard";
 import { db } from "~/db/firestore";
 import { useActiveStory } from "~/hooks/useActiveStory";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
@@ -40,6 +41,7 @@ export default function Room() {
   return (
     <div className="flex flex-col gap-2">
       <h1>Room: {roomId}</h1>
+      <CopyCurrentUrlToClipboard />
       <div>
         <h3>Issue:</h3>
         <textarea
@@ -79,6 +81,6 @@ export default function Room() {
 
       <button onClick={showConfetti}>Party Time</button>
       {shouldShowConfetti && <Confetti width={width} height={height} />}
-    </div>
+    </div >
   );
 }
