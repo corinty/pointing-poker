@@ -1,9 +1,4 @@
-import {
-  doc, updateDoc, DocumentReference,
-  DocumentSnapshot,
-  onSnapshot, addDoc,
-  collection
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc, DocumentReference, DocumentSnapshot, onSnapshot, addDoc, collection } from "firebase/firestore";
 import { db } from "./firestore";
 
 export interface Story {
