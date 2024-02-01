@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { useCollectionData, useDocumentData } from "react-firebase-hooks/firestore";
 import { db } from "~/db/firestore";
 import { roomsRepository } from "~/db/rooms";
+import { useCurrentUser } from "./useCurrentUser";
 
 interface Room {
   activeStory: string;
 }
 
 export function useRoom(roomId: string) {
+  const currentUser = useCurrentUser();
   const [room, setRoom] = useState<{ activeStory: string } | null>(null);
 
   const [stories, setStories] = useState<{ [key: string]: any } | null>(null);
@@ -17,7 +19,7 @@ export function useRoom(roomId: string) {
     const unsubRoom = onSnapshot(doc(db, "rooms", roomId), {
       next: async (snapshot) => {
         if (!snapshot.exists()) {
-          const room = await roomsRepository.createRoom(roomId);
+          const room = await roomsRepository.createRoom(roomId, currentUser);
 
           setRoom(room.data() as Room);
         } else {

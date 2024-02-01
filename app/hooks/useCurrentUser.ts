@@ -6,7 +6,5 @@ export const UserContext = createContext<User | null>(null);
 export function useCurrentUser() {
     const userContext = useContext(UserContext);
 
-    return {
-        user: userContext
-    };
+    return userContext;
 }

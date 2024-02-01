@@ -1,5 +1,5 @@
 import { User } from "firebase/auth";
-import { doc, setDoc, getDocs, collection } from "firebase/firestore";
+import { doc, setDoc, getDocs, collection, getDoc } from "firebase/firestore";
 import { db } from '~/db/firestore';
 
 const save = (user: User) => {
@@ -14,7 +14,12 @@ const list = () => {
     return getDocs(collection(db, "users"));
 };
 
+const getReference = (userId: string) => {
+    return doc(db, "users", userId);
+};
+
 export const userRepository = {
     save: save,
+    getReference: getReference,
     list: list,
 };
