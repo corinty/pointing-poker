@@ -1,12 +1,23 @@
-.room-selection{
+.room-selection {
   @apply grid gap-4;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: minmax(50px,auto);
+  grid-auto-rows: minmax(50px, auto);
 
-  button{
+  button {
     margin: 0;
   }
-  input{
+
+  input {
     height: 100%;
   }
+}
+
+nav {
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
+  padding-top: 2em;
+}
+
+nav .sign-in {
+  text-align: right;
 }

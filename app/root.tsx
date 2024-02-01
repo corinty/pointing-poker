@@ -70,13 +70,17 @@ export default function App() {
       </head>
       <body>
         <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
-          <a href="/">Home</a>
-          {!loading && user && <div className="float-right">{user.displayName}</div>}
-          {!loading && !user && (
-            <button onClick={() => signIn(setUser)} className="float-right">
-              Sign in
-            </button>
-          )}
+          <div>
+            <a href="/">Home</a>
+          </div>
+          <div className="sign-in">
+            {!loading && user && user.displayName}
+            {!loading && !user && (
+              <button type="button" onClick={() => signIn(setUser)}>
+                Sign in
+              </button>
+            )}
+          </div>
         </nav>
         {!loading && user && (
           <UserContext.Provider value={user}>
