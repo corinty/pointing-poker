@@ -1,11 +1,11 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
-import { GithubAuthProvider, User, getAuth, signInWithPopup } from "firebase/auth";
+import { GithubAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import { useEffect, useState } from "react";
 import simpledotcss from "simpledotcss/simple.css";
 import styles from "~/globals.css";
-import { userRepository } from "./db/users";
+import { User, userRepository } from "./db/users";
 import { UserContext } from "./hooks/useCurrentUser";
 
 export const links: LinksFunction = () => [
@@ -31,10 +31,11 @@ const signIn = (setUser) => {
       const token = credential?.accessToken;
 
       // The signed-in user info.
-      const user = result.user;
+      const firebaseUser = result.user;
 
-      setUser(user);
-      userRepository.save(user);
+      console.log("Setting user to ", firebaseUser);
+      setUser(userRepository.fromFirebaseToUser(firebaseUser));
+      userRepository.save(firebaseUser);
     })
     .catch((error) => {
       // Handle Errors here.
@@ -54,13 +55,14 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
-    getAuth().onAuthStateChanged((user) => {
-      if (user) {
+    getAuth().onAuthStateChanged((firebaseUser) => {
+      if (firebaseUser) {
+        const user = userRepository.fromFirebaseToUser(firebaseUser)
         setUser(user);
       }
       setLoading(false);
     });
-  })
+  }, [])
 
   return (
     <html lang="en">
@@ -76,7 +78,7 @@ export default function App() {
             <a href="/">Home</a>
           </div>
           <div className="sign-in">
-            {!loading && user && user.displayName}
+            {!loading && user && user.name}
             {!loading && !user && (
               <button type="button" onClick={() => signIn(setUser)}>
                 Sign in

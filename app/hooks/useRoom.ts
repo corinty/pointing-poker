@@ -29,7 +29,7 @@ export function useRoom(roomId: string) {
           setRoom((await room) as Room);
         }
       },
-    });
+    }, [currentUser]);
 
     const unsubStories = onSnapshot(collection(db, "rooms", roomId, "stories"), {
       next: async (snapshot) => {
