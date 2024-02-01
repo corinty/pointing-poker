@@ -5,8 +5,10 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "~/utils/useWindowSize";
 import styles from "~/styles/room.css";
 import { LinksFunction } from "@remix-run/node";
-import { collection, doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "~/db/firestore";
+import { useRoom } from "~/hooks/useRoom";
+import { act } from "react-dom/test-utils";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
@@ -17,9 +19,15 @@ export default function Room() {
   const { roomId } = useParams();
   const { width, height } = useWindowSize();
   const [shouldShowConfetti, setConfetti] = useState(false);
+  const [description, setDescription] = useState("");
 
   if (!roomId) throw Error("missing param");
 
+  const { room, stories, activeStory, loading } = useRoom(roomId);
+  const [things] = useDocument(doc(db, `rooms/${roomId}/stories/${room?.activeStory}`));
+  console.log(things);
+
+  if (loading) return;
 
   const showConfetti = () => {
     setConfetti(true);
@@ -36,8 +44,14 @@ export default function Room() {
     <div className="flex flex-col gap-2">
       <h1>Room: {roomId}</h1>
       <div>
-        <h3>Issue Title</h3>
-        <textarea defaultValue={"Story Title"} />
+        <h3>Issue:</h3>
+        <textarea
+          value={description}
+          onChange={async (e) => {
+            const value = e.target.value;
+            setDoc(doc(db, `rooms/${roomId}/stories/${room!.activeStory}`), { description: value }, { merge: true });
+          }}
+        />
       </div>
       <hr />
       <div className="points">
