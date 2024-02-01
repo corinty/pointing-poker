@@ -74,3 +74,13 @@
     @apply bg-background text-foreground;
   }
 } */
+
+nav {
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
+  padding-top: 2em;
+
+  .sign-in {
+    text-align: right;
+  }
+}
