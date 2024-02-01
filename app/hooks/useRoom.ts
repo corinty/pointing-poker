@@ -4,16 +4,26 @@ import { useCollectionData, useDocumentData } from "react-firebase-hooks/firesto
 import { db } from "~/db/firestore";
 import { roomsRepository } from "~/db/rooms";
 import { useCurrentUser } from "./useCurrentUser";
+import { User } from "firebase/auth";
+import { useBeforeUnload } from "@remix-run/react";
 
 interface Room {
   activeStory: string;
+  users: User[];
 }
 
 export function useRoom(roomId: string) {
   const currentUser = useCurrentUser();
-  const [room, setRoom] = useState<{ activeStory: string } | null>(null);
+  const [room, setRoom] = useState<Room | null>(null);
 
   const [stories, setStories] = useState<{ [key: string]: any } | null>(null);
+  if (!currentUser) throw Error("No current user");
+
+  useBeforeUnload(
+    () => {
+      roomsRepository.removeUser(roomId, currentUser)
+    }
+  );
 
   useEffect(() => {
     const unsubRoom = onSnapshot(doc(db, "rooms", roomId), {
@@ -21,13 +31,11 @@ export function useRoom(roomId: string) {
         if (!snapshot.exists()) {
           const room = await roomsRepository.createRoom(roomId, currentUser);
 
-          setRoom(room.data() as Room);
+          setRoom(await room as Room);
         } else {
-          const room = snapshot.data() as Room;
+          const room = await roomsRepository.joinUser(roomId, currentUser);
 
-          roomsRepository.joinUser(roomId, currentUser);
-
-          setRoom(room);
+          setRoom(await room as Room);
         }
       },
     });
@@ -46,6 +54,7 @@ export function useRoom(roomId: string) {
     });
 
     return () => {
+      roomsRepository.removeUser(roomId, currentUser)
       unsubRoom();
       unsubRoom();
     };

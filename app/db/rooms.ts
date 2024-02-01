@@ -1,4 +1,4 @@
-import { setDoc, doc, getDoc, arrayUnion, updateDoc } from "firebase/firestore";
+import { setDoc, doc, getDoc, arrayUnion, arrayRemove, updateDoc, QueryDocumentSnapshot, SnapshotOptions, DocumentReference } from "firebase/firestore";
 import { db } from "./firestore";
 import { User } from "firebase/auth";
 import { userRepository } from "./users";
@@ -7,11 +7,19 @@ const roomReference = (roomId: string) => {
     return doc(db, "rooms", roomId);
 }
 
-const loadRoom = (roomId: string) => {
-    return getDoc(roomReference(roomId));
+const loadRoom = async (roomId: string) => {
+    const roomSnapshot = await getDoc(roomReference(roomId));
+    if (!roomSnapshot.exists()) return
+    const users = await Promise.all(roomSnapshot.data().users.map((userRef: DocumentReference) => {
+        return userRepository.loadFromReference(userRef);
+    }));
+    return {
+        ...roomSnapshot.data(),
+        users
+    }
 }
 
-const createRoom = (roomId: string, user: User) => {
+const createRoom = async (roomId: string, user: User) => {
     const userReference = userRepository.getReference(user.uid);
     setDoc(doc(db, "rooms", roomId), {
         users: [userReference],
@@ -19,17 +27,25 @@ const createRoom = (roomId: string, user: User) => {
         stories: [],
     });
 
-    return loadRoom(roomId);
+    return await loadRoom(roomId);
 };
 
-const joinUser = (roomId: string, user: User) => {
-    const roomEventually = loadRoom(roomId);
+const joinUser = async (roomId: string, user: User) => {
     const userReference = userRepository.getReference(user.uid);
 
     updateDoc(roomReference(roomId), { users: arrayUnion(userReference) });
+
+    return await loadRoom(roomId);
+}
+
+const removeUser = (roomId: string, user: User) => {
+    const userReference = userRepository.getReference(user.uid);
+
+    updateDoc(roomReference(roomId), { users: arrayRemove(userReference) });
 }
 
 export const roomsRepository = {
-    createRoom: createRoom,
-    joinUser: joinUser,
+    createRoom,
+    joinUser,
+    removeUser,
 };

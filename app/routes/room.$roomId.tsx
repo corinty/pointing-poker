@@ -27,7 +27,7 @@ export default function Room() {
   const [things] = useDocument(doc(db, `rooms/${roomId}/stories/${room?.activeStory}`));
   console.log(things);
 
-  if (loading) return;
+  if (loading || !room) return;
 
   const showConfetti = () => {
     setConfetti(true);
@@ -49,7 +49,7 @@ export default function Room() {
           value={activeStory?.description || ''}
           onChange={async (e) => {
             const value = e.target.value;
-            setDoc(doc(db, `rooms/${roomId}/stories/${room!.activeStory}`), { description: value }, { merge: true });
+            setDoc(doc(db, `rooms/${roomId}/stories/${room.activeStory}`), { description: value }, { merge: true });
           }}
         />
       </div>
@@ -64,10 +64,12 @@ export default function Room() {
 
       <div className="submissions">
         <p className="text-2xl font-bold">Player</p>
+        <p className="text-2xl font-bold">Image</p>
         <p className="text-2xl font-bold">Points</p>
-        {tempPlayers.map((player) => (
-          <Fragment key={player}>
-            <div>{player}</div>
+        {room.users.map((player) => (
+          <Fragment key={player.name}>
+            <div>{player.name}</div>
+            <img src={player.photoURL} />
             <div>{Math.random()}</div>
           </Fragment>
         ))}
