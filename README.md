@@ -14,8 +14,12 @@ Pointing poker is a great exercise for estimating how complex an issue will be t
 - Leverage the new Google Meet apps to easily make an activity for everyone to join.
 - Connect to GitHub Issues/Projects to grab useful info like issue title, description, and link. As well as be able to set the points on the issue once there is agreement.
 
+## Documents
 
-[Tech Design](https://docs.google.com/document/d/1QHgXuBD17h7q5Dl8IBD8w95I_k_12fmQ9NsPIsutl0k/edit#heading=h.iz5ju0bktp11)
+- [Tech Design](https://docs.google.com/document/d/1QHgXuBD17h7q5Dl8IBD8w95I_k_12fmQ9NsPIsutl0k/edit#heading=h.iz5ju0bktp11)
+- [Figma][figma]
+
+[figma]: https://www.figma.com/file/9o7auoY4HR7vGsMohilvzb/Pointing-Poker-(Hack-Days-35)
 
 ## Development
 
