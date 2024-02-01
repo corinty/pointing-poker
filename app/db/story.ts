@@ -1,8 +1,8 @@
 import {
-  doc,
-  getDoc, updateDoc, DocumentReference,
+  doc, updateDoc, DocumentReference,
   DocumentSnapshot,
-  onSnapshot
+  onSnapshot, addDoc,
+  collection
 } from "firebase/firestore";
 import { db } from "./firestore";
 
@@ -16,8 +16,12 @@ const storyReference = (roomId: string, storyId: string) => {
   return doc(db, "rooms", roomId, "stories", storyId);
 };
 
-const loadStory = async (storyReference: DocumentReference) => {
-  return getDoc(storyReference);
+const createStory = async (roomId: DocumentReference) => {
+  return addDoc(collection(roomId, "stories"), {
+    description: "",
+    finalPoints: -1,
+    votes: {},
+  });
 };
 
 const subscribe = (roomId: string, storyId: string, { next }: { next: (snapshot: DocumentSnapshot) => void }) => {
@@ -31,7 +35,7 @@ const updateStory = (roomId: string, storyId: string, data: Partial<Story>) => {
 };
 
 export const storyRepository = {
-  loadStory,
+  createStory,
   updateStory,
   storyReference,
   subscribe,
