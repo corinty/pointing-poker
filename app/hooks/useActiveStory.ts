@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Story, storyRepository } from "~/db/stories";
-import { useCurrentUser } from "./useCurrentUser";
+import {useEffect, useState} from 'react';
+import {Story, storyRepository} from '~/db/stories';
+import {useCurrentUser} from './useCurrentUser';
 
 export function useActiveStory(roomId: string, activeStoryId?: string) {
   const [data, setData] = useState<Story | null>(null);
@@ -28,13 +28,23 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
     });
   };
 
-  if (!data) return { loading: true, submitVote };
+  if (!data) return {loading: true, submitVote};
 
   return {
     loading: false,
     data,
+    toggleDisplayVotes: () => {
+      storyRepository.updateStory(roomId, activeStoryId!, {
+        displayVotes: !data.displayVotes,
+      });
+    },
+    setDisplayVotes: (value: boolean) => {
+      storyRepository.updateStory(roomId, activeStoryId!, {
+        displayVotes: value,
+      });
+    },
     clearVotes: () => storyRepository.clearVotes(roomId, activeStoryId!),
-    nextStory: () => storyRepository.createStory(roomId, { setActive: true }),
+    nextStory: () => storyRepository.createStory(roomId, {setActive: true}),
     submitVote,
     currentUserVote: data.votes[currentUser!.uid],
   };

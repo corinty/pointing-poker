@@ -38,6 +38,7 @@ export default function Room() {
     currentUserVote,
     clearVotes,
     nextStory,
+    toggleDisplayVotes,
   } = useActiveStory(roomId, room?.activeStoryId);
 
   useEffect(() => {
@@ -58,36 +59,42 @@ export default function Room() {
         <h1>Room: {roomId}</h1> <CopyCurrentUrlToClipboard />
       </div>
       <p className="text-2xl">Issue Description:</p>
-      <div className="flex gap-2 mb-2">
-        <textarea
-          className="m-0 min-h-32 w-1/2"
-          value={activeStory?.description || ''}
-          onChange={async (e) => {
-            storyRepository.updateStory(roomId, room.activeStoryId, {
-              description: e.target.value,
-            });
-          }}
-        />
-        <button
-          style={{height: '100%', margin: '0'}}
-          onClick={() => {
-            nextStory();
-          }}
-        >
-          Next Story
-        </button>
+      <div>
+        <div className="flex gap-2">
+          <textarea
+            className="m-0 min-h-32 w-1/2"
+            value={activeStory?.description || ''}
+            onChange={async (e) => {
+              storyRepository.updateStory(roomId, room.activeStoryId, {
+                description: e.target.value,
+              });
+            }}
+          />
+          <button
+            style={{height: '100%', margin: '0'}}
+            onClick={() => {
+              nextStory();
+            }}
+          >
+            Next Story
+          </button>
+        </div>
+        <small className="opacity-50 mt-0">
+          Story ID: {room.activeStoryId}
+        </small>
       </div>
-      <small>Story ID: {room.activeStoryId}</small>
       <div className="flex gap-3">
         <button
-          className="flex-grow bg-neutral-600"
+          className="w-1/2 bg-neutral-600"
           onClick={() => {
             clearVotes();
           }}
         >
           Clear Votes
         </button>{' '}
-        <button className="flex-grow bg-green-600">Show Votes</button>
+        <button className="w-1/2 bg-green-600" onClick={toggleDisplayVotes}>
+          {activeStory.displayVotes ? 'Hide' : 'Show'} Votes
+        </button>
       </div>
       <div className="points">
         {pointValues.map((value) => (
