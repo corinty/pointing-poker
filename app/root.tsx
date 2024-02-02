@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import {cssBundleHref} from '@remix-run/css-bundle';
 import type {LinksFunction} from '@remix-run/node';
 import {
@@ -14,9 +15,12 @@ import {GithubAuthProvider, getAuth, signInWithPopup} from 'firebase/auth';
 import {useEffect, useState} from 'react';
 import simpledotcss from 'simpledotcss/simple.css';
 import styles from '~/globals.css';
+import animateCss from 'animate.css/animate.css';
 import {User, userRepository} from './db/users';
 import {UserContext} from './hooks/useCurrentUser';
 import {usePresence} from './hooks/usePresence';
+import {Toaster} from 'react-hot-toast';
+import classNames from 'classnames';
 
 export const links: LinksFunction = () => [
   {
@@ -26,6 +30,10 @@ export const links: LinksFunction = () => [
   {
     rel: 'stylesheet',
     href: simpledotcss,
+  },
+  {
+    rel: 'stylesheet',
+    href: animateCss,
   },
   ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
 ];
@@ -72,6 +80,7 @@ export default function App() {
     getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
         const user = userRepository.fromFirebaseToUser(firebaseUser);
+        location.state = null;
         setUser(user);
       }
       setLoading(false);
@@ -94,7 +103,15 @@ export default function App() {
           <div className="sign-in">
             {!loading && user && user.name}
             {!loading && !user && (
-              <button type="button" onClick={() => signIn(setUser)}>
+              <button
+                type="button"
+                className={classNames('animate__animated', {
+                  animate__wobble: loginRequired,
+                  'bg-purple-700': loginRequired,
+                  'text-white': loginRequired,
+                })}
+                onClick={() => signIn(setUser)}
+              >
                 Sign in
               </button>
             )}
@@ -104,9 +121,15 @@ export default function App() {
         {!loading && !user && <Outlet />}
         {loginRequired && (
           <div className="flex justify-center">
-            <p className="notice w-1/2 text-center">Please sign in</p>
+            <button
+              className="notice w-1/2 text-center text-white"
+              onClick={() => signIn(setUser)}
+            >
+              ⬆️ Please sign in ⬆️
+            </button>
           </div>
         )}
+        <Toaster />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

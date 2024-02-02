@@ -6,8 +6,8 @@ export function useRequireCurrentUser() {
   const navigate = useNavigate();
 
   if (!user) {
-    return navigate('/', {state: {loginRequired: true}});
+    navigate('/', {state: {loginRequired: true}});
   }
 
-  return user;
+  return user!;
 }

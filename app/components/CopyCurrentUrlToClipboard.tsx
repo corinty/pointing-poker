@@ -1,39 +1,20 @@
-import {useState} from 'react';
+import toast from 'react-hot-toast';
 
 export default function CopyCurrentUrlToClipboard() {
-  const [copiedSuccessfully, setCopiedSuccessfully] = useState(false);
-  const [copiedUnsuccessfully, setCopiedUnsuccessfully] = useState(false);
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(window.location.href).then(
       () => {
-        setCopiedSuccessfully(true);
-        setTimeout(() => setCopiedSuccessfully(false), 3000);
+        toast('🔗 Room link copied!! 📋');
       },
       () => {
-        setCopiedUnsuccessfully(true);
-        setTimeout(() => setCopiedUnsuccessfully(false), 3000);
+        toast('Error copying room link');
       },
     );
   };
 
   return (
-    <div>
-      <div onClick={copyToClipboard} style={{cursor: 'pointer'}}>
-        🔗 Share room link
-      </div>
-      <div style={{fontSize: '80%', fontWeight: 'lighter'}}>
-        {copiedSuccessfully && (
-          <div style={{paddingTop: '1em', paddingLeft: '1em'}}>
-            Copied link to clipboard!
-          </div>
-        )}
-        {copiedUnsuccessfully && (
-          <div style={{paddingTop: '1em', paddingLeft: '1em'}}>
-            Failed to copy link to clipboard
-          </div>
-        )}
-      </div>
-    </div>
+    <button onClick={copyToClipboard} className="m-0">
+      🔗 Share room link
+    </button>
   );
 }

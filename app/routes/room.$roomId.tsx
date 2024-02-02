@@ -10,6 +10,7 @@ import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
 import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
+import classNames from 'classnames';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -50,11 +51,13 @@ export default function Room() {
   const {displayVotes, description} = activeStory;
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="">
-        <h1>Room: {roomId}</h1> <CopyCurrentUrlToClipboard />
+    <div className="flex flex-col gap-2 ">
+      <div className="flex items-center gap-4 h-24">
+        <div>
+          <h3 className="m-0">Room: {roomId}</h3>
+        </div>
+        <CopyCurrentUrlToClipboard />
       </div>
-      <p className="text-2xl">Issue Description:</p>
       <div>
         <div className="flex gap-2">
           <textarea
@@ -97,16 +100,20 @@ export default function Room() {
           {activeStory.displayVotes ? 'Hide' : 'Show'} Votes
         </button>
       </div>
-      <div className="points">
-        {pointValues.map((value) => (
-          <button
-            key={value}
-            className={classNames({'bg-green-500': value == currentUserVote})}
-            onClick={() => submitVote(currentUser.uid, value)}
-          >
-            {value}
-          </button>
-        ))}
+
+      <div>
+        <h3>Vote</h3>
+        <div className="points">
+          {pointValues.map((value) => (
+            <button
+              key={value}
+              className={classNames({'bg-green-500': value == currentUserVote})}
+              onClick={() => submitVote(currentUser.uid, value)}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="submissions">
