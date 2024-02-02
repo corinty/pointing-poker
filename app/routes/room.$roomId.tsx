@@ -44,7 +44,7 @@ export default function Room() {
     if (!activeStory) return;
     const votes = Object.values(activeStory.votes);
 
-    if (everyoneVoted || shakeShowVotes) {
+    if (everyoneVoted) {
       setDisplayVotes(true);
     } else {
       setDisplayVotes(false);
@@ -148,6 +148,7 @@ export default function Room() {
           </div>
           <div className="flex flex-col gap-4">
             {presentUsers!.map((player) => {
+              const playerVoted = votes[player.uid];
               return (
                 <div className={'grid grid-cols-2 gap-2'} key={player.name}>
                   {activeStory.displayVotes ? (
@@ -155,7 +156,9 @@ export default function Room() {
                       {activeStory?.votes[player.uid]}
                     </div>
                   ) : (
-                    <div className="bg-slate-700 w-2/3"></div>
+                    <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">
+                      {playerVoted && <div>✅</div>}
+                    </div>
                   )}
                   <div className="player text-center">
                     <div>{player.name || player.email}</div>
