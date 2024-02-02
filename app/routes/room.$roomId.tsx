@@ -1,18 +1,15 @@
 import {LinksFunction} from '@remix-run/node';
 import {useParams} from '@remix-run/react';
-import {doc, setDoc} from 'firebase/firestore';
 import {Fragment, useEffect, useState} from 'react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
-import {db} from '~/db/firestore';
 import {useActiveStory} from '~/hooks/useActiveStory';
 import {useCurrentUser} from '~/hooks/useCurrentUser';
-import {usePresence} from '~/hooks/usePresence';
 import {usePresentUsers} from '~/hooks/usePresentUsers';
 import {useRoom} from '~/hooks/useRoom';
 import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
-import _ from 'lodash';
+import classNames from 'classnames';
 import {storyRepository} from '~/db/stories';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
@@ -29,7 +26,7 @@ export default function Room() {
   if (!currentUser) throw Error('Must be logged In');
   if (!roomId) throw Error('missing param');
 
-  const {room, stories, loading} = useRoom(roomId);
+  const {room, loading} = useRoom(roomId);
 
   const {data: usersData, loading: usersLoading} = usePresentUsers(roomId);
   const {
@@ -53,6 +50,8 @@ export default function Room() {
   console.log({room, activeStory, usersLoading});
   if (loading || !room || !activeStory || usersLoading) return;
 
+  const {displayVotes, description} = activeStory;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="">
@@ -63,7 +62,7 @@ export default function Room() {
         <div className="flex gap-2">
           <textarea
             className="m-0 min-h-32 w-1/2"
-            value={activeStory?.description || ''}
+            value={description || ''}
             onChange={async (e) => {
               storyRepository.updateStory(roomId, room.activeStoryId, {
                 description: e.target.value,
@@ -92,7 +91,12 @@ export default function Room() {
         >
           Clear Votes
         </button>{' '}
-        <button className="w-1/2 bg-green-600" onClick={toggleDisplayVotes}>
+        <button
+          className={classNames('w-1/2', {
+            'bg-green-500': !displayVotes,
+          })}
+          onClick={toggleDisplayVotes}
+        >
           {activeStory.displayVotes ? 'Hide' : 'Show'} Votes
         </button>
       </div>
@@ -100,7 +104,7 @@ export default function Room() {
         {pointValues.map((value) => (
           <button
             key={value}
-            className={value == currentUserVote ? 'bg-green-500' : ''}
+            className={classNames({'bg-green-500': value == currentUserVote})}
             onClick={() => submitVote(currentUser.uid, value)}
           >
             {value}

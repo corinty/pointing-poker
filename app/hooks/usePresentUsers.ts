@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { roomsRepository } from "~/db/rooms";
-import { User } from "~/db/users";
+import {useEffect, useState} from 'react';
+import {roomsRepository} from '~/db/rooms';
+import {User} from '~/db/users';
 
 export function usePresentUsers(roomId: string) {
   const [data, setData] = useState<User[]>();
@@ -24,7 +24,7 @@ export function usePresentUsers(roomId: string) {
     };
   }, [roomId]);
 
-  if (!data) return { loading: true };
+  if (!data) return {loading: true};
 
   return {
     loading: false,

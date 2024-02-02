@@ -6,7 +6,8 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual",
-    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "lint": "eslint --ignore,-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "lint:formatting": "prettier --write app/**",
     "start": "remix-serve ./build/index.js",
     "typecheck": "tsc"
   },
@@ -16,6 +17,7 @@
     "@remix-run/react": "^2.5.1",
     "@remix-run/serve": "^2.5.1",
     "class-variance-authority": "^0.7.0",
+    "classnames": "^2.5.1",
     "clsx": "^2.1.0",
     "firebase": "^10.7.2",
     "human-id": "^4.1.0",
@@ -33,6 +35,7 @@
   },
   "devDependencies": {
     "@remix-run/dev": "^2.5.1",
+    "@remix-run/eslint-config": "^2.6.0",
     "@shopify/eslint-plugin": "^44.0.0",
     "@shopify/prettier-config": "^1.1.2",
     "@types/lodash": "^4.14.202",

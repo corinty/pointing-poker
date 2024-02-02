@@ -1,24 +1,32 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction } from "@remix-run/node";
-import { Link, Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
-import { GithubAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
-import { useEffect, useState } from "react";
-import simpledotcss from "simpledotcss/simple.css";
-import styles from "~/globals.css";
-import { User, userRepository } from "./db/users";
-import { UserContext } from "./hooks/useCurrentUser";
-import { usePresence } from "./hooks/usePresence";
+import {cssBundleHref} from '@remix-run/css-bundle';
+import type {LinksFunction} from '@remix-run/node';
+import {
+  Link,
+  Links,
+  LiveReload,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+} from '@remix-run/react';
+import {GithubAuthProvider, getAuth, signInWithPopup} from 'firebase/auth';
+import {useEffect, useState} from 'react';
+import simpledotcss from 'simpledotcss/simple.css';
+import styles from '~/globals.css';
+import {User, userRepository} from './db/users';
+import {UserContext} from './hooks/useCurrentUser';
+import {usePresence} from './hooks/usePresence';
 
 export const links: LinksFunction = () => [
   {
-    rel: "stylesheet",
+    rel: 'stylesheet',
     href: styles,
   },
   {
-    rel: "stylesheet",
+    rel: 'stylesheet',
     href: simpledotcss,
   },
-  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+  ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
 ];
 
 const signIn = (setUser) => {
@@ -34,7 +42,7 @@ const signIn = (setUser) => {
       // The signed-in user info.
       const firebaseUser = result.user;
 
-      console.log("Setting user to ", firebaseUser);
+      console.log('Setting user to ', firebaseUser);
       setUser(userRepository.fromFirebaseToUser(firebaseUser));
       userRepository.save(firebaseUser);
     })
@@ -47,7 +55,7 @@ const signIn = (setUser) => {
       const email = error.customData.email;
       // The AuthCredential type that was used.
       const credential = GithubAuthProvider.credentialFromError(error);
-      console.log("error", error, errorCode, errorMessage, email, credential);
+      console.log('error', error, errorCode, errorMessage, email, credential);
       // ...
     });
 };
@@ -97,7 +105,7 @@ export default function App() {
   );
 }
 
-function UserProvider({ user }) {
+function UserProvider({user}) {
   usePresence(user);
   return (
     <UserContext.Provider value={user}>
