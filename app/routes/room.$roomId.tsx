@@ -4,13 +4,12 @@ import {Fragment, useEffect, useState} from 'react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import {useActiveStory} from '~/hooks/useActiveStory';
-import {useCurrentUser} from '~/hooks/useCurrentUser';
 import {usePresentUsers} from '~/hooks/usePresentUsers';
 import {useRoom} from '~/hooks/useRoom';
 import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
-import classNames from 'classnames';
 import {storyRepository} from '~/db/stories';
+import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -20,10 +19,8 @@ export default function Room() {
   const {roomId} = useParams();
   const {width, height} = useWindowSize();
   const [shouldShowConfetti, setConfetti] = useState(false);
-  const currentUser = useCurrentUser();
+  const currentUser = useRequireCurrentUser();
 
-  // TODO: Redirect to login page
-  if (!currentUser) throw Error('Must be logged In');
   if (!roomId) throw Error('missing param');
 
   const {room, loading} = useRoom(roomId);

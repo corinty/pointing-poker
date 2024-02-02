@@ -1,10 +1,10 @@
 import {useEffect, useState} from 'react';
 import {Story, storyRepository} from '~/db/stories';
-import {useCurrentUser} from './useCurrentUser';
+import {useRequireCurrentUser} from './useRequireCurrentUser';
 
 export function useActiveStory(roomId: string, activeStoryId?: string) {
   const [data, setData] = useState<Story | null>(null);
-  const currentUser = useCurrentUser();
+  const currentUser = useRequireCurrentUser();
   useEffect(() => {
     if (!activeStoryId) return;
 

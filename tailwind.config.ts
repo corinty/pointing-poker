@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 export default {
-  content: ["./app/routes/**/*.{tsx,js}"],
+  content: ["./app/routes/**/*.{tsx,js}", "./app/root.tsx"],
   theme: {
     extend: {},
   },

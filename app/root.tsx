@@ -8,6 +8,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from '@remix-run/react';
 import {GithubAuthProvider, getAuth, signInWithPopup} from 'firebase/auth';
 import {useEffect, useState} from 'react';
@@ -63,6 +64,10 @@ const signIn = (setUser) => {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const location = useLocation();
+
+  const loginRequired = !!location.state?.loginRequired;
+
   useEffect(() => {
     getAuth().onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
@@ -97,6 +102,11 @@ export default function App() {
         </nav>
         {!loading && user && <UserProvider user={user} />}
         {!loading && !user && <Outlet />}
+        {loginRequired && (
+          <div className="flex justify-center">
+            <p className="notice w-1/2 text-center">Please sign in</p>
+          </div>
+        )}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

@@ -1,14 +1,11 @@
 import {useEffect, useState} from 'react';
 import {type Room, roomsRepository} from '~/db/rooms';
-import {useCurrentUser} from './useCurrentUser';
 import {Story, storyRepository} from '~/db/stories';
 
 export function useRoom(roomId: string) {
-  const currentUser = useCurrentUser();
   const [room, setRoom] = useState<Room | null>(null);
 
   const [stories, setStories] = useState<{[key: string]: Story} | null>(null);
-  if (!currentUser) throw Error('No current user');
 
   useEffect(() => {
     const unsubRoom = roomsRepository.subscribe(roomId, {
