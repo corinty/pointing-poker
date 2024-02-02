@@ -1,47 +1,43 @@
 import { setDoc, doc, getDoc, arrayUnion, arrayRemove, updateDoc, collection, where, onSnapshot, DocumentSnapshot, query, QuerySnapshot } from "firebase/firestore";
 import { db } from "./firestore";
 import { type User, userRepository } from "~/db/users";
-import { storyRepository } from "./story";
+import { storyRepository } from "./stories";
+import { addDoc } from "firebase/firestore/lite";
 
 export interface Room {
   activeStoryId: string;
-  users: User[];
 }
 
-const roomReference = (roomId: string) => {
+const defaultRoomData = {
+  activeStoryId: "",
+};
+
+export const roomReference = (roomId: string) => {
   return doc(db, "rooms", roomId);
 };
 
-const loadRoom = async (roomId: string) => {
-  const roomSnapshot = await getDoc(roomReference(roomId));
-  if (!roomSnapshot.exists()) return;
+const createRoom = async (roomId: string) => {
+  const storySnapshot = await storyRepository.createStory(roomId);
+  await setDoc(roomReference(roomId), defaultRoomData);
 
-  return { ...roomSnapshot.data(), users: [] };
-};
-
-const createRoom = async (roomId: string, user: User) => {
-  const userReference = userRepository.getReference(user.uid);
-  setDoc(doc(db, "rooms", roomId), {
-    users: [userReference],
-    activeStoryId: "",
-    stories: [],
+  updateRoom(roomId, {
+    activeStoryId: storySnapshot.id,
   });
 
-  return await loadRoom(roomId);
+  return await getRoomData(roomId);
 };
 
-const joinUser = async (roomId: string, user: User) => {
-  const userReference = userRepository.getReference(user.uid);
-
-  updateDoc(roomReference(roomId), { users: arrayUnion(userReference) });
-
-  return await loadRoom(roomId);
+const updateRoom = (roomId: string, data: Partial<Room>) => {
+  return setDoc(roomReference(roomId), data, { merge: true });
 };
 
-const removeUser = (roomId: string, user: User) => {
-  const userReference = userRepository.getReference(user.uid);
-
-  updateDoc(roomReference(roomId), { users: arrayRemove(userReference) });
+const getRoomData = async (roomId: string) => {
+  const roomSnapshot = await getDoc(roomReference(roomId));
+  if (!roomSnapshot.exists()) throw new Error(`No room found with ID: ${roomId}`);
+  return roomSnapshot.data();
+};
+const subscribe = (roomId: string, { next }: { next: (snapshot: DocumentSnapshot) => void }) => {
+  return onSnapshot(roomReference(roomId), { next });
 };
 
 const subscribeToUsersInRoom = (roomId: string, { next }: { next: (snapshot: QuerySnapshot) => void }) => {
@@ -53,7 +49,8 @@ const subscribeToUsersInRoom = (roomId: string, { next }: { next: (snapshot: Que
 
 export const roomsRepository = {
   subscribeToUsersInRoom,
+  subscribe,
+  getRoomData,
   createRoom,
-  joinUser,
-  removeUser,
+  updateRoom,
 };

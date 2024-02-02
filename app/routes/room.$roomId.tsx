@@ -13,6 +13,7 @@ import { useRoom } from "~/hooks/useRoom";
 import styles from "~/styles/room.css";
 import { useWindowSize } from "~/utils/useWindowSize";
 import _ from "lodash";
+import { storyRepository } from "~/db/stories";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
@@ -31,32 +32,55 @@ export default function Room() {
   const { room, stories, loading } = useRoom(roomId);
 
   const { data: usersData, loading: usersLoading } = usePresentUsers(roomId);
-  const { loading: activeStoryLoading, data: activeStory, submitVote, currentUserVote } = useActiveStory(roomId, room?.activeStoryId);
+  const { data: activeStory, submitVote, currentUserVote, clearVotes, nextStory } = useActiveStory(roomId, room?.activeStoryId);
 
   useEffect(() => {
     if (!activeStory) return;
     const votes = Object.values(activeStory.votes);
-    const hasConsensus = votes.every((vote) => vote == votes[0]);
+    const hasConsensus = usersData?.length == votes.length && votes.every((vote) => vote == votes[0]);
 
-    if (hasConsensus) setConfetti(hasConsensus);
+    setConfetti(hasConsensus);
   }, [activeStory]);
+  console.log({ room, activeStory, usersLoading });
   if (loading || !room || !activeStory || usersLoading) return;
 
   return (
     <div className="flex flex-col gap-2">
-      <h1>Room: {roomId}</h1>
-      <CopyCurrentUrlToClipboard />
-      <div>
-        <h3>Issue:</h3>
+      <div className="">
+        <h1>Room: {roomId}</h1> <CopyCurrentUrlToClipboard />
+      </div>
+      <p className="text-2xl">Issue Description:</p>
+      <div className="flex gap-2 mb-2">
         <textarea
+          className="m-0 min-h-32 w-1/2"
           value={activeStory?.description || ""}
           onChange={async (e) => {
-            const value = e.target.value;
-            setDoc(doc(db, `rooms/${roomId}/stories/${room.activeStoryId}`), { description: value }, { merge: true });
+            storyRepository.updateStory(roomId, room.activeStoryId, {
+              description: e.target.value,
+            });
           }}
         />
+        <button
+          style={{ height: "100%", margin: "0" }}
+          onClick={() => {
+            nextStory();
+          }}
+        >
+          Next Story
+        </button>
       </div>
-      <hr />
+      <small>Story ID: {room.activeStoryId}</small>
+      <div className="flex gap-3">
+        <button
+          className="flex-grow bg-neutral-600"
+          onClick={() => {
+            clearVotes();
+          }}
+        >
+          Clear Votes
+        </button>{" "}
+        <button className="flex-grow bg-green-600">Show Votes</button>
+      </div>
       <div className="points">
         {pointValues.map((value) => (
           <button key={value} className={value == currentUserVote ? "bg-green-500" : ""} onClick={() => submitVote(currentUser.uid, value)}>
@@ -77,13 +101,18 @@ export default function Room() {
                   <img src={player.photoURL} />
                 </div>
               </div>
-              <div className="text-9xl">{activeStory?.votes[player.uid]}</div>
+              {activeStory.displayVotes ? <div className="text-9xl">{activeStory?.votes[player.uid]}</div> : <div className="text-9xl bg-slate-900 h-2/3 w-2/3"></div>}
             </Fragment>
           );
         })}
       </div>
 
-      {shouldShowConfetti && <Confetti width={width} height={height} />}
+      {shouldShowConfetti && (
+        <div style={{ display: "fixed", top: 0, left: 0 }}>
+          {" "}
+          <Confetti width={width} height={height} />
+        </div>
+      )}
     </div>
   );
 }

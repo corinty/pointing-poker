@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Story, storyRepository } from "~/db/story";
+import { Story, storyRepository } from "~/db/stories";
 import { useCurrentUser } from "./useCurrentUser";
 
 export function useActiveStory(roomId: string, activeStoryId?: string) {
@@ -33,6 +33,8 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
   return {
     loading: false,
     data,
+    clearVotes: () => storyRepository.clearVotes(roomId, activeStoryId!),
+    nextStory: () => storyRepository.createStory(roomId, { setActive: true }),
     submitVote,
     currentUserVote: data.votes[currentUser!.uid],
   };
