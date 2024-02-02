@@ -1,69 +1,48 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction } from "@remix-run/node";
-import { Link, Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
-import { GithubAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
-import { useEffect, useState } from "react";
-import simpledotcss from "simpledotcss/simple.css";
-import styles from "~/globals.css";
-import { User, userRepository } from "./db/users";
-import { UserContext } from "./hooks/useCurrentUser";
-import { usePresence } from "./hooks/usePresence";
+import {cssBundleHref} from '@remix-run/css-bundle';
+import type {ActionFunction, LinksFunction} from '@remix-run/node';
+import {
+  Link,
+  Links,
+  LiveReload,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useFetcher,
+} from '@remix-run/react';
+import {GithubAuthProvider, getAuth, signInWithPopup} from 'firebase/auth';
+import {useEffect, useState} from 'react';
+import simpledotcss from 'simpledotcss/simple.css';
+import styles from '~/globals.css';
+import {type User, userRepository} from './db/users';
+import {UserContext} from './hooks/useCurrentUser';
+import {usePresence} from './hooks/usePresence';
 
 export const links: LinksFunction = () => [
   {
-    rel: "stylesheet",
+    rel: 'stylesheet',
     href: styles,
   },
   {
-    rel: "stylesheet",
+    rel: 'stylesheet',
     href: simpledotcss,
   },
-  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+  ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
 ];
-
-const signIn = (setUser) => {
-  const provider = new GithubAuthProvider();
-  const auth = getAuth();
-
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      // This gives you a GitHub Access Token. You can use it to access the GitHub API.
-      const credential = GithubAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-
-      // The signed-in user info.
-      const firebaseUser = result.user;
-
-      console.log("Setting user to ", firebaseUser);
-      setUser(userRepository.fromFirebaseToUser(firebaseUser));
-      userRepository.save(firebaseUser);
-    })
-    .catch((error) => {
-      // Handle Errors here.
-
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      // The email of the user's account used.
-      const email = error.customData.email;
-      // The AuthCredential type that was used.
-      const credential = GithubAuthProvider.credentialFromError(error);
-      console.log("error", error, errorCode, errorMessage, email, credential);
-      // ...
-    });
-};
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  useEffect(() => {
-    getAuth().onAuthStateChanged((firebaseUser) => {
-      if (firebaseUser) {
-        const user = userRepository.fromFirebaseToUser(firebaseUser);
-        setUser(user);
-      }
-      setLoading(false);
-    });
-  }, []);
+  const [loading, setLoading] = useState<boolean>(false);
+  const fetcher = useFetcher();
+  // useEffect(() => {
+  // getAuth().onAuthStateChanged((firebaseUser) => {
+  // if (firebaseUser) {
+  // const user = userRepository.fromFirebaseToUser(firebaseUser);
+  // setUser(user);
+  // }
+  // setLoading(false);
+  // });
+  // }, []);
 
   return (
     <html lang="en">
@@ -97,7 +76,7 @@ export default function App() {
   );
 }
 
-function UserProvider({ user }) {
+function UserProvider({user}: {user: User}) {
   usePresence(user);
   return (
     <UserContext.Provider value={user}>

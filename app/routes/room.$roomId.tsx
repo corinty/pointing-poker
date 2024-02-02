@@ -14,10 +14,38 @@ import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
 import _ from 'lodash';
 import {storyRepository} from '~/db/stories';
+import {LoaderFunction, redirect} from '@remix-run/node';
+import {session} from '~/cookies';
+import {auth as serverAuth} from '~/db/firebase.server';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
 const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
+
+export const loader: LoaderFunction = async ({request}) => {
+  // Get the cookie value (JWT)
+  const jwt = await session.parse(request.headers.get('Cookie'));
+
+  // No JWT found...
+  if (!jwt) {
+    return redirect('/login');
+  }
+
+  try {
+    const token = await serverAuth.verifySessionCookie(jwt);
+
+    // Get the user's profile using the token from somewhere (Firestore, Remote Database etc)
+    const profile = await getUserProfile(token.uid);
+
+    // Return the profile information to the page!
+    return {
+      profile,
+    };
+  } catch (e) {
+    // Invalid JWT - log them out (see below)
+    return redirect('/logout');
+  }
+};
 
 export default function Room() {
   const {roomId} = useParams();
@@ -131,4 +159,7 @@ export default function Room() {
       )}
     </div>
   );
+}
+function getUserProfile(uid: any) {
+  throw new Error('Function not implemented.');
 }
