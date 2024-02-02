@@ -43,8 +43,8 @@ export default function Room() {
       votes.every((vote) => vote == votes[0]);
 
     setConfetti(hasConsensus);
-  }, [activeStory]);
-  console.log({room, activeStory, usersLoading});
+  }, [activeStory, usersData?.length]);
+
   if (loading || !room || !activeStory || usersLoading) return;
 
   const {displayVotes, description} = activeStory;
@@ -118,7 +118,7 @@ export default function Room() {
               <div className="player text-center">
                 <div>{player.name || player.email}</div>
                 <div>
-                  <img src={player.photoURL} />
+                  <img src={player.photoURL} alt={`player: ${player.name}`} />
                 </div>
               </div>
               {activeStory.displayVotes ? (

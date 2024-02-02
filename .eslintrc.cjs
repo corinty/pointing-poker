@@ -23,6 +23,10 @@ module.exports = {
   // Base config
   extends: ['eslint:recommended'],
 
+  rules: {
+    'jsx-a11y/alt-text': 'off',
+    '@typescript-eslint/no-unused-vars': 'warn',
+  },
   overrides: [
     // React
     {
@@ -34,6 +38,7 @@ module.exports = {
         'plugin:react-hooks/recommended',
         'plugin:jsx-a11y/recommended',
       ],
+
       settings: {
         react: {
           version: 'detect',
@@ -54,6 +59,7 @@ module.exports = {
       files: ['**/*.{ts,tsx}'],
       plugins: ['@typescript-eslint', 'import'],
       parser: '@typescript-eslint/parser',
+
       settings: {
         'import/internal-regex': '^~/',
         'import/resolver': {

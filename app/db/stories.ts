@@ -2,12 +2,10 @@ import {
   doc,
   getDoc,
   updateDoc,
-  DocumentReference,
   DocumentSnapshot,
   onSnapshot,
   addDoc,
   collection,
-  setDoc,
   QuerySnapshot,
 } from 'firebase/firestore';
 import {db} from './firestore';
