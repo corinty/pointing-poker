@@ -28,7 +28,7 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
   const submitVote = (userId: string, value: number) => {
     if (!activeStoryId) return;
     storyRepository.updateStory(roomId, activeStoryId, {
-      [`votes.${userId}`]: {value, submitedAt: serverTimestamp()},
+      [`votes.${userId}`]: {value, submittedAt: serverTimestamp()},
     });
   };
 

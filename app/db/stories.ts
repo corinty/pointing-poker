@@ -15,7 +15,7 @@ export interface Story {
   description: string;
   finalPoints: number | null;
   displayVotes: boolean;
-  votes: {[key: string]: {value: number; submitedAt: Date}};
+  votes: {[key: string]: {value: number; submittedAt: Date}};
 }
 const defaultStory: Story = {
   description: '',
