@@ -1,10 +1,13 @@
 import {useEffect, useState} from 'react';
 import {Story, storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from './useRequireCurrentUser';
+import {usePresentUsers} from './usePresentUsers';
 
 export function useActiveStory(roomId: string, activeStoryId?: string) {
   const [data, setData] = useState<Story | null>(null);
   const currentUser = useRequireCurrentUser();
+  const {data: presentUsers} = usePresentUsers(roomId);
+
   useEffect(() => {
     if (!activeStoryId) return;
 
@@ -28,22 +31,30 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
     });
   };
 
-  if (!data) return {loading: true, submitVote};
+  if (!data || !activeStoryId) return {loading: true, submitVote};
+
+  const everyoneVoted = presentUsers?.every((user) => {
+    return Object.keys(data.votes).includes(user.uid);
+  });
 
   return {
     loading: false,
     data,
     toggleDisplayVotes: () => {
-      storyRepository.updateStory(roomId, activeStoryId!, {
+      storyRepository.updateStory(roomId, activeStoryId, {
         displayVotes: !data.displayVotes,
       });
     },
     setDisplayVotes: (value: boolean) => {
-      storyRepository.updateStory(roomId, activeStoryId!, {
+      storyRepository.updateStory(roomId, activeStoryId, {
         displayVotes: value,
       });
     },
-    clearVotes: () => storyRepository.clearVotes(roomId, activeStoryId!),
+    everyoneVoted,
+    clearVotes: () => {
+      storyRepository.clearVotes(roomId, activeStoryId);
+      storyRepository.updateStory(roomId, activeStoryId, {displayVotes: false});
+    },
     nextStory: () => storyRepository.createStory(roomId, {setActive: true}),
     submitVote,
     currentUserVote: data.votes[currentUser!.uid],

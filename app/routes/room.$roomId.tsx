@@ -1,6 +1,6 @@
 import {LinksFunction} from '@remix-run/node';
 import {useParams} from '@remix-run/react';
-import {Fragment, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import {useActiveStory} from '~/hooks/useActiveStory';
@@ -11,6 +11,7 @@ import {useWindowSize} from '~/utils/useWindowSize';
 import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
+import toast from 'react-hot-toast';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -20,13 +21,14 @@ export default function Room() {
   const {roomId} = useParams();
   const {width, height} = useWindowSize();
   const [shouldShowConfetti, setConfetti] = useState(false);
+  const [shakeShowVotes, setShakeShowVotes] = useState(false);
   const currentUser = useRequireCurrentUser();
 
   if (!roomId) throw Error('missing param');
 
   const {room, loading} = useRoom(roomId);
 
-  const {data: usersData, loading: usersLoading} = usePresentUsers(roomId);
+  const {data: presentUsers, loading: usersLoading} = usePresentUsers(roomId);
   const {
     data: activeStory,
     submitVote,
@@ -34,21 +36,33 @@ export default function Room() {
     clearVotes,
     nextStory,
     toggleDisplayVotes,
+    setDisplayVotes,
+    everyoneVoted,
   } = useActiveStory(roomId, room?.activeStoryId);
 
   useEffect(() => {
     if (!activeStory) return;
     const votes = Object.values(activeStory.votes);
-    const hasConsensus =
-      usersData?.length == votes.length &&
-      votes.every((vote) => vote == votes[0]);
 
-    setConfetti(hasConsensus);
-  }, [activeStory, usersData?.length]);
+    if (everyoneVoted || shakeShowVotes) {
+      setDisplayVotes(true);
+    } else {
+      setDisplayVotes(false);
+    }
+    const hasConsensus =
+      presentUsers?.length == votes.length &&
+      votes.every((vote) => vote == votes[0]);
+  }, [
+    activeStory,
+    everyoneVoted,
+    presentUsers?.length,
+    setDisplayVotes,
+    shakeShowVotes,
+  ]);
 
   if (loading || !room || !activeStory || usersLoading) return;
 
-  const {displayVotes, description} = activeStory;
+  const {displayVotes, description, votes} = activeStory;
 
   return (
     <div className="flex flex-col gap-2 ">
@@ -92,50 +106,71 @@ export default function Room() {
           Clear Votes
         </button>{' '}
         <button
-          className={classNames('w-1/2', {
-            'bg-green-500': !displayVotes,
+          className={classNames('w-1/2 bg-green-500 ', {
+            animate__shakeX: shakeShowVotes,
+            animate__animated: shakeShowVotes,
           })}
-          onClick={toggleDisplayVotes}
+          onClick={() => {
+            console.log({everyoneVoted, shakeShowVotes});
+            if (!everyoneVoted && !shakeShowVotes) {
+              setShakeShowVotes(true);
+              toast('Missing votes...');
+            }
+            setDisplayVotes(true);
+          }}
         >
-          {activeStory.displayVotes ? 'Hide' : 'Show'} Votes
+          Show Votes
         </button>
       </div>
 
-      <div>
-        <h3>Vote</h3>
-        <div className="points">
-          {pointValues.map((value) => (
-            <button
-              key={value}
-              className={classNames({'bg-green-500': value == currentUserVote})}
-              onClick={() => submitVote(currentUser.uid, value)}
-            >
-              {value}
-            </button>
-          ))}
+      <div className="grid grid-cols-2">
+        <div>
+          <h3>Vote</h3>
+          <div className="points">
+            {pointValues.map((value) => (
+              <button
+                key={value}
+                className={classNames({
+                  'bg-green-500': value == currentUserVote,
+                })}
+                onClick={() => submitVote(currentUser.uid, value)}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="submissions">
-        <p className="text-2xl font-bold">Person</p>
-        <p className="text-2xl font-bold">Points</p>
-        {usersData!.map((player) => {
-          return (
-            <Fragment key={player.name}>
-              <div className="player text-center">
-                <div>{player.name || player.email}</div>
-                <div>
-                  <img src={player.photoURL} alt={`player: ${player.name}`} />
+        <div className="submissions">
+          <div className="flex">
+            <p className="text-2xl font-bold w-1/2">Points</p>
+            <p className="text-2xl font-bold w-1/2">Person</p>
+          </div>
+          <div className="flex flex-col gap-4">
+            {presentUsers!.map((player) => {
+              return (
+                <div className={'grid grid-cols-2 gap-2'} key={player.name}>
+                  {activeStory.displayVotes ? (
+                    <div className="text-9xl">
+                      {activeStory?.votes[player.uid]}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-700 w-2/3"></div>
+                  )}
+                  <div className="player text-center">
+                    <div>{player.name || player.email}</div>
+                    <div>
+                      <img
+                        src={player.photoURL}
+                        alt={`player: ${player.name}`}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              {activeStory.displayVotes ? (
-                <div className="text-9xl">{activeStory?.votes[player.uid]}</div>
-              ) : (
-                <div className="text-9xl bg-slate-900 h-2/3 w-2/3"></div>
-              )}
-            </Fragment>
-          );
-        })}
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {shouldShowConfetti && (

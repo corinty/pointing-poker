@@ -10,14 +10,13 @@
 }
 
 .submissions {
-  @apply gap-1;
-  display: grid;
-  grid-template-columns: repeat(2, 50%);
-  justify-items: center;
-  align-items: center;
 
   .player img {
-    max-width: 200px;
+    max-width: 90px;
     border-radius: 20px;
+    transition: all 200ms ease ;
+    &:hover{
+      transform: scale(1.5)
+    }
   }
 }
