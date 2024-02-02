@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react';
 import {Story, storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from './useRequireCurrentUser';
 import {usePresentUsers} from './usePresentUsers';
+import {FieldValue, serverTimestamp} from 'firebase/firestore';
 
 export function useActiveStory(roomId: string, activeStoryId?: string) {
   const [data, setData] = useState<Story | null>(null);
@@ -27,7 +28,7 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
   const submitVote = (userId: string, value: number) => {
     if (!activeStoryId) return;
     storyRepository.updateStory(roomId, activeStoryId, {
-      [`votes.${userId}`]: value,
+      [`votes.${userId}`]: {value, submitedAt: serverTimestamp()},
     });
   };
 

@@ -11,7 +11,6 @@ import {useWindowSize} from '~/utils/useWindowSize';
 import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
-import toast from 'react-hot-toast';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -21,7 +20,6 @@ export default function Room() {
   const {roomId} = useParams();
   const {width, height} = useWindowSize();
   const [shouldShowConfetti, setConfetti] = useState(false);
-  const [shakeShowVotes, setShakeShowVotes] = useState(false);
   const currentUser = useRequireCurrentUser();
 
   if (!roomId) throw Error('missing param');
@@ -35,7 +33,6 @@ export default function Room() {
     currentUserVote,
     clearVotes,
     nextStory,
-    toggleDisplayVotes,
     setDisplayVotes,
     everyoneVoted,
   } = useActiveStory(roomId, room?.activeStoryId);
@@ -43,26 +40,25 @@ export default function Room() {
   useEffect(() => {
     if (!activeStory) return;
     const votes = Object.values(activeStory.votes);
-
-    if (everyoneVoted) {
-      setDisplayVotes(true);
-    } else {
-      setDisplayVotes(false);
-    }
     const hasConsensus =
       presentUsers?.length == votes.length &&
       votes.every((vote) => vote == votes[0]);
-  }, [
-    activeStory,
-    everyoneVoted,
-    presentUsers?.length,
-    setDisplayVotes,
-    shakeShowVotes,
-  ]);
+
+    if (hasConsensus) {
+      setConfetti(true);
+      setTimeout(() => setConfetti(false), 3000);
+    }
+  }, [activeStory, activeStory?.votes, presentUsers?.length]);
+
+  useEffect(() => {
+    if (everyoneVoted) {
+      setDisplayVotes(true);
+    }
+  }, [everyoneVoted, setDisplayVotes]);
 
   if (loading || !room || !activeStory || usersLoading) return;
 
-  const {displayVotes, description, votes} = activeStory;
+  const {description, votes} = activeStory;
 
   return (
     <div className="flex flex-col gap-2 ">
@@ -106,16 +102,8 @@ export default function Room() {
           Clear Votes
         </button>{' '}
         <button
-          className={classNames('w-1/2 bg-green-500 ', {
-            animate__shakeX: shakeShowVotes,
-            animate__animated: shakeShowVotes,
-          })}
+          className={classNames('w-1/2 bg-green-500 ', {})}
           onClick={() => {
-            console.log({everyoneVoted, shakeShowVotes});
-            if (!everyoneVoted && !shakeShowVotes) {
-              setShakeShowVotes(true);
-              toast('Missing votes...');
-            }
             setDisplayVotes(true);
           }}
         >
@@ -153,7 +141,7 @@ export default function Room() {
                 <div className={'grid grid-cols-2 gap-2'} key={player.name}>
                   {activeStory.displayVotes ? (
                     <div className="text-9xl">
-                      {activeStory?.votes[player.uid]}
+                      {activeStory?.votes[player.uid].value}
                     </div>
                   ) : (
                     <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">
