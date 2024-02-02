@@ -1,15 +1,14 @@
-import { collection, doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { db } from "~/db/firestore";
-import { type Room, roomsRepository } from "~/db/rooms";
-import { useCurrentUser } from "./useCurrentUser";
+import {useEffect, useState} from 'react';
+import {type Room, roomsRepository} from '~/db/rooms';
+import {useCurrentUser} from './useCurrentUser';
+import {Story, storyRepository} from '~/db/stories';
 
 export function useRoom(roomId: string) {
   const currentUser = useCurrentUser();
   const [room, setRoom] = useState<Room | null>(null);
 
-  const [stories, setStories] = useState<{ [key: string]: any } | null>(null);
-  if (!currentUser) throw Error("No current user");
+  const [stories, setStories] = useState<{[key: string]: Story} | null>(null);
+  if (!currentUser) throw Error('No current user');
 
   useEffect(() => {
     const unsubRoom = roomsRepository.subscribe(roomId, {
@@ -22,14 +21,16 @@ export function useRoom(roomId: string) {
         }
       },
     });
-    const unsubStories = onSnapshot(collection(db, "rooms", roomId, "stories"), {
+
+    const unsubStories = storyRepository.subscribeToCollection(roomId, {
       next: async (snapshot) => {
-        const stories = Object.fromEntries(
-          snapshot.docs.map((doc) => {
-            if (!doc.data()) return [];
-            return [doc.id, doc.data()];
-          })
-        );
+        const stories = snapshot.docs.reduce((acc, doc) => {
+          if (!doc.exists()) return acc;
+
+          acc[doc.id] = doc.data() as Story;
+
+          return acc;
+        }, {} as {[key: string]: Story});
 
         setStories(stories);
       },
@@ -40,7 +41,7 @@ export function useRoom(roomId: string) {
       unsubStories();
     };
   }, [roomId]);
-  if (!room || !stories) return { loading: true };
+  if (!room || !stories) return {loading: true};
 
   return {
     loading: false,
