@@ -11,7 +11,6 @@ import {useWindowSize} from '~/utils/useWindowSize';
 import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
-import {has} from 'lodash';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -120,9 +119,18 @@ export default function Room() {
               Number of submitted Votes:{' '}
               <mark>{Object.keys(activeStory.votes).length}</mark>
             </p>
-            <p>
+            <p className="flex gap-2">
               {' '}
-              Consensus: <mark>{hasConsensus.toString()}</mark>
+              Consensus:{' '}
+              <div
+                className={classNames(
+                  'animate__animated p-1 radiu',
+                  hasConsensus && 'bg-green-600 text-white font-bold ',
+                  {animate__wobble: hasConsensus},
+                )}
+              >
+                {hasConsensus.toString().toUpperCase()}
+              </div>
             </p>
           </>
         ) : (
