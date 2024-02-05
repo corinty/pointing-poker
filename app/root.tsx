@@ -25,11 +25,11 @@ import classNames from 'classnames';
 export const links: LinksFunction = () => [
   {
     rel: 'stylesheet',
-    href: styles,
+    href: simpledotcss,
   },
   {
     rel: 'stylesheet',
-    href: simpledotcss,
+    href: styles,
   },
   {
     rel: 'stylesheet',

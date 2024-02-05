@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {Story, storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from './useRequireCurrentUser';
 import {usePresentUsers} from './usePresentUsers';
-import {FieldValue, serverTimestamp} from 'firebase/firestore';
+import {serverTimestamp} from 'firebase/firestore';
 
 export function useActiveStory(roomId: string, activeStoryId?: string) {
   const [data, setData] = useState<Story | null>(null);
@@ -34,9 +34,23 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
 
   if (!data || !activeStoryId) return {loading: true, submitVote};
 
+  const voteEntires = Object.values(data.votes);
+
   const everyoneVoted = presentUsers?.every((user) => {
     return Object.keys(data.votes).includes(user.uid);
   });
+
+  const averageVote = (() => {
+    const votes = Object.values(data.votes).map((vote) => vote.value);
+
+    if (votes.length == 0) return 0;
+
+    return average(votes);
+  })();
+
+  const hasConsensus =
+    presentUsers?.length == voteEntires.length &&
+    voteEntires.every((vote) => vote.value == voteEntires[0]?.value);
 
   return {
     loading: false,
@@ -52,6 +66,8 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
       });
     },
     everyoneVoted,
+    averageVote,
+    hasConsensus,
     clearVotes: () => {
       storyRepository.clearVotes(roomId, activeStoryId);
       storyRepository.updateStory(roomId, activeStoryId, {displayVotes: false});
@@ -60,4 +76,8 @@ export function useActiveStory(roomId: string, activeStoryId?: string) {
     submitVote,
     currentUserVote: data.votes[currentUser!.uid],
   };
+}
+
+function average(array: number[]) {
+  return array.reduce((a, b) => a + b, 0) / array.length;
 }

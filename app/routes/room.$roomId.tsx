@@ -11,6 +11,7 @@ import {useWindowSize} from '~/utils/useWindowSize';
 import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
+import {has} from 'lodash';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -35,20 +36,18 @@ export default function Room() {
     nextStory,
     setDisplayVotes,
     everyoneVoted,
+    averageVote,
+    hasConsensus,
   } = useActiveStory(roomId, room?.activeStoryId);
 
   useEffect(() => {
     if (!activeStory) return;
-    const votes = Object.values(activeStory.votes);
-    const hasConsensus =
-      presentUsers?.length == votes.length &&
-      votes.every((vote) => vote == votes[0]);
 
     if (hasConsensus) {
       setConfetti(true);
-      setTimeout(() => setConfetti(false), 3000);
+      setTimeout(() => setConfetti(false), 5000);
     }
-  }, [activeStory, activeStory?.votes, presentUsers?.length]);
+  }, [activeStory, activeStory?.votes, hasConsensus, presentUsers?.length]);
 
   useEffect(() => {
     if (everyoneVoted) {
@@ -58,8 +57,7 @@ export default function Room() {
 
   if (loading || !room || !activeStory || usersLoading) return;
 
-  const {description, votes} = activeStory;
-
+  const {description} = activeStory;
   return (
     <div className="flex flex-col gap-2 ">
       <div className="flex items-center gap-4 h-24">
@@ -111,6 +109,27 @@ export default function Room() {
         </button>
       </div>
 
+      <div className="flex items-center gap-4">
+        <h3 className="m-0 text-2xl p-0">Results:</h3>
+        {activeStory.displayVotes ? (
+          <>
+            <p>
+              Average: <mark>{averageVote ?? 0}</mark>
+            </p>
+            <p>
+              Number of submitted Votes:{' '}
+              <mark>{Object.keys(activeStory.votes).length}</mark>
+            </p>
+            <p>
+              {' '}
+              Consensus: <mark>{hasConsensus.toString()}</mark>
+            </p>
+          </>
+        ) : (
+          <p>✨...🔮...🦄</p>
+        )}
+      </div>
+
       <div className="grid grid-cols-2">
         <div>
           <h3>Vote</h3>
@@ -119,7 +138,7 @@ export default function Room() {
               <button
                 key={value}
                 className={classNames({
-                  'bg-green-500': value == currentUserVote,
+                  'bg-green-500': value == currentUserVote?.value,
                 })}
                 onClick={() => submitVote(currentUser.uid, value)}
               >
@@ -136,12 +155,13 @@ export default function Room() {
           </div>
           <div className="flex flex-col gap-4">
             {presentUsers!.map((player) => {
-              const playerVoted = votes[player.uid];
+              console.log({story: activeStory?.votes, id: player.uid});
+              const playerVoted = activeStory.votes[player.uid];
               return (
                 <div className={'grid grid-cols-2 gap-2'} key={player.name}>
                   {activeStory.displayVotes ? (
                     <div className="text-9xl">
-                      {activeStory?.votes[player.uid].value}
+                      {activeStory?.votes[player.uid]?.value ?? '?'}
                     </div>
                   ) : (
                     <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">

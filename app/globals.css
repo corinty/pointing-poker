@@ -84,3 +84,7 @@ nav {
     text-align: right;
   }
 }
+
+mark{
+  background-color: var(--accent);
+}
