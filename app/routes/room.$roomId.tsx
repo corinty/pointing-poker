@@ -11,39 +11,21 @@ import {useWindowSize} from '~/utils/useWindowSize';
 import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
-import {supabase} from '~/db/supabase';
-import {Tables} from '~/db/database.types';
-import type {MergeDeep} from 'type-fest';
+import {createRoom, getRoom} from '~/db/rooms.server';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
 const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
 
-type RoomWithActiveStory = MergeDeep<
-  Tables<'rooms'>,
-  {
-    active_story: Tables<'stories'>;
-  }
->;
-const getRoomWithActiveStory = (roomId: string) =>
-  supabase
-    .from('rooms')
-    .select(`*, active_story:active_story_id(*, votes(*))`)
-    .eq('id', roomId)
-    .limit(1)
-    .single<RoomWithActiveStory>();
-
 export const loader: LoaderFunction = async ({params}) => {
   if (!params.roomId) throw new Error('missing room ID');
-  const {data, error} = await getRoomWithActiveStory(params.roomId);
-  if (error) throw new Error(error.message);
-  const res = data;
 
-  console.log(data.active_story.votes);
+  const room = await getRoom(params.roomId);
+  console.log('loader', room);
 
-  if (!data) throw 'data not found';
+  if (room) return json(room);
 
-  return json({res});
+  return json({room: await createRoom(params.roomId)});
 };
 
 export default function Room() {
@@ -51,8 +33,8 @@ export default function Room() {
   const {width, height} = useWindowSize();
   const [shouldShowConfetti, setConfetti] = useState(false);
   const currentUser = useRequireCurrentUser();
-  const {data} = useLoaderData<typeof loader>();
-  console.log(data);
+  const data = useLoaderData<typeof loader>();
+  console.log('loader data', data);
 
   if (!roomId) throw Error('missing param');
 

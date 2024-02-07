@@ -1,5 +1,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import {cssBundleHref} from '@remix-run/css-bundle';
+import '@mantine/core/styles.css';
+import '@mantine/nprogress/styles.css';
 import type {LinksFunction} from '@remix-run/node';
 import {
   Link,
@@ -21,6 +23,8 @@ import {UserContext} from './hooks/useCurrentUser';
 import {usePresence} from './hooks/usePresence';
 import {Toaster} from 'react-hot-toast';
 import classNames from 'classnames';
+import {ColorSchemeScript, MantineProvider} from '@mantine/core';
+import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator/GlobalLoadingIndicator';
 
 export const links: LinksFunction = () => [
   {
@@ -94,45 +98,49 @@ export default function App() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <ColorSchemeScript />
       </head>
       <body>
-        <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
-          <div>
-            <Link to="/">Home</Link>
-          </div>
-          <div className="sign-in">
-            {!loading && user && user.name}
-            {!loading && !user && (
+        <MantineProvider defaultColorScheme="dark">
+          <GlobalLoadingIndicator />
+          <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
+            <div>
+              <Link to="/">Home</Link>
+            </div>
+            <div className="sign-in">
+              {!loading && user && user.name}
+              {!loading && !user && (
+                <button
+                  type="button"
+                  className={classNames('animate__animated', {
+                    animate__wobble: loginRequired,
+                    'bg-purple-700': loginRequired,
+                    'text-white': loginRequired,
+                  })}
+                  onClick={() => signIn(setUser)}
+                >
+                  Sign in
+                </button>
+              )}
+            </div>
+          </nav>
+          {!loading && user && <UserProvider user={user} />}
+          {!loading && !user && <Outlet />}
+          {loginRequired && (
+            <div className="flex justify-center">
               <button
-                type="button"
-                className={classNames('animate__animated', {
-                  animate__wobble: loginRequired,
-                  'bg-purple-700': loginRequired,
-                  'text-white': loginRequired,
-                })}
+                className="notice w-1/2 text-center text-white"
                 onClick={() => signIn(setUser)}
               >
-                Sign in
+                ⬆️ Please sign in ⬆️
               </button>
-            )}
-          </div>
-        </nav>
-        {!loading && user && <UserProvider user={user} />}
-        {!loading && !user && <Outlet />}
-        {loginRequired && (
-          <div className="flex justify-center">
-            <button
-              className="notice w-1/2 text-center text-white"
-              onClick={() => signIn(setUser)}
-            >
-              ⬆️ Please sign in ⬆️
-            </button>
-          </div>
-        )}
-        <Toaster />
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
+            </div>
+          )}
+          <Toaster />
+          <ScrollRestoration />
+          <Scripts />
+          <LiveReload />
+        </MantineProvider>
       </body>
     </html>
   );
