@@ -24,7 +24,7 @@ import {usePresence} from './hooks/usePresence';
 import {Toaster} from 'react-hot-toast';
 import classNames from 'classnames';
 import {ColorSchemeScript, MantineProvider} from '@mantine/core';
-import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator/GlobalLoadingIndicator';
+import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator';
 
 export const links: LinksFunction = () => [
   {

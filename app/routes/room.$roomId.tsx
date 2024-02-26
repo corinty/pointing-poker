@@ -1,4 +1,9 @@
-import {LinksFunction, LoaderFunction, json} from '@remix-run/node';
+import {
+  LinksFunction,
+  LoaderFunction,
+  LoaderFunctionArgs,
+  json,
+} from '@remix-run/node';
 import {useLoaderData, useParams} from '@remix-run/react';
 import {useEffect, useState} from 'react';
 import Confetti from 'react-confetti';
@@ -17,7 +22,7 @@ export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
 const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
 
-export const loader: LoaderFunction = async ({params}) => {
+export const loader = async ({params}: LoaderFunctionArgs) => {
   if (!params.roomId) throw new Error('missing room ID');
 
   const room = await getRoom(params.roomId);
@@ -25,7 +30,7 @@ export const loader: LoaderFunction = async ({params}) => {
 
   if (room) return json(room);
 
-  return json({room: await createRoom(params.roomId)});
+  return json(await createRoom(params.roomId));
 };
 
 export default function Room() {
@@ -33,8 +38,7 @@ export default function Room() {
   const {width, height} = useWindowSize();
   const [shouldShowConfetti, setConfetti] = useState(false);
   const currentUser = useRequireCurrentUser();
-  const data = useLoaderData<typeof loader>();
-  console.log('loader data', data);
+  const initialData = useLoaderData<typeof loader>();
 
   if (!roomId) throw Error('missing param');
 
@@ -51,7 +55,7 @@ export default function Room() {
     everyoneVoted,
     averageVote,
     hasConsensus,
-  } = useActiveStory(roomId, room?.activeStoryId);
+  } = useActiveStory(initialData.activeStoryId?.toString());
 
   useEffect(() => {
     if (!activeStory) return;

@@ -10,7 +10,7 @@ import {
   unique,
   bigserial,
 } from 'drizzle-orm/pg-core';
-import {relations} from 'drizzle-orm';
+import {InferSelectModel, relations} from 'drizzle-orm';
 
 import {rooms} from './roomSchema.server';
 
@@ -22,7 +22,7 @@ export const stories = pgTable('stories', {
     .defaultNow()
     .notNull(),
   description: text('description').default(''),
-  points: numeric('points'),
+  finalPoints: numeric('final_points'),
   roomId: text('room_id')
     .notNull()
     .references((): AnyPgColumn => rooms.id, {
@@ -37,6 +37,8 @@ export const storyRelations = relations(stories, ({one}) => ({
     references: [rooms.id],
   }),
 }));
+
+export type Story = InferSelectModel<typeof stories>;
 
 export const votes = pgTable('votes', {
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations

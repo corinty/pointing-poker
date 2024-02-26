@@ -7,10 +7,13 @@ export const createRoom = async (roomId: string) => {
   await db.insert(rooms).values({id: roomId}).onConflictDoNothing();
   const story = await db.insert(stories).values({roomId}).returning();
 
-  return db
+  await db
     .update(rooms)
     .set({activeStoryId: story[0].id})
-    .where(eq(rooms.id, roomId));
+    .where(eq(rooms.id, roomId))
+    .returning();
+
+  return getRoom(roomId);
 };
 
 export const getRoom = async (roomId: string) =>

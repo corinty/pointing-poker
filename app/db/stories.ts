@@ -13,7 +13,7 @@ import {roomReference, roomsRepository} from './rooms';
 
 export interface Story {
   description: string;
-  finalPoints: number | null;
+  finalPoint: number | null;
   displayVotes: boolean;
   votes: {[key: string]: {value: number; submittedAt: Date}};
 }

@@ -13,21 +13,24 @@ export type Database = {
         Row: {
           active_story_id: number | null
           created_at: string
+          display_votes: boolean
           id: string
         }
         Insert: {
           active_story_id?: number | null
           created_at?: string
+          display_votes?: boolean
           id: string
         }
         Update: {
           active_story_id?: number | null
           created_at?: string
+          display_votes?: boolean
           id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "rooms_active_story_id_fkey"
+            foreignKeyName: "rooms_active_story_id_stories_id_fk"
             columns: ["active_story_id"]
             isOneToOne: false
             referencedRelation: "stories"
@@ -39,30 +42,59 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          final_points: number | null
           id: number
-          points: number | null
           room_id: string
         }
         Insert: {
           created_at?: string
           description?: string | null
+          final_points?: number | null
           id?: number
-          points?: number | null
           room_id: string
         }
         Update: {
           created_at?: string
           description?: string | null
+          final_points?: number | null
           id?: number
-          points?: number | null
           room_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "stories_room_id_fkey"
+            foreignKeyName: "stories_room_id_rooms_id_fk"
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]
@@ -74,15 +106,15 @@ export type Database = {
           points: number | null
           story_id: number
           updated_at: string
-          user_id: string | null
+          users: string
         }
         Insert: {
           created_at?: string
-          id?: number
+          id: number
           points?: number | null
           story_id: number
           updated_at?: string
-          user_id?: string | null
+          users: string
         }
         Update: {
           created_at?: string
@@ -90,19 +122,19 @@ export type Database = {
           points?: number | null
           story_id?: number
           updated_at?: string
-          user_id?: string | null
+          users?: string
         }
         Relationships: [
           {
-            foreignKeyName: "votes_story_id_fkey"
+            foreignKeyName: "votes_story_id_stories_id_fk"
             columns: ["story_id"]
             isOneToOne: false
             referencedRelation: "stories"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "votes_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "votes_users_users_id_fk"
+            columns: ["users"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]

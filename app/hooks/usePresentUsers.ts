@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {roomsRepository} from '~/db/rooms';
 import {User} from '~/db/users';
 
-export function usePresentUsers(roomId: string) {
+export function usePresentUsers(roomId: string | undefined) {
   const [data, setData] = useState<User[]>();
 
   useEffect(() => {

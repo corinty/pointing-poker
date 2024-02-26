@@ -1,27 +1,42 @@
 import {useEffect, useState} from 'react';
-import {Story, storyRepository} from '~/db/stories';
+import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from './useRequireCurrentUser';
 import {usePresentUsers} from './usePresentUsers';
 import {serverTimestamp} from 'firebase/firestore';
+import {supabase} from '~/db/supabase';
+import {Tables} from '~/db/database.types';
+import type {Story} from '~/db/schema/schema.server';
 
-export function useActiveStory(roomId: string, activeStoryId?: string) {
-  const [data, setData] = useState<Story | null>(null);
+export function useActiveStory(
+  activeStoryId?: string,
+  initalData: Tables<'stories'> | null = null,
+) {
+  const [data, setData] = useState<Story | null>(initalData);
   const currentUser = useRequireCurrentUser();
-  const {data: presentUsers} = usePresentUsers(roomId);
+  const {data: presentUsers} = usePresentUsers(data?.final_points?.toString());
+  const roomId = 'dancing-bear-jump';
 
   useEffect(() => {
     if (!activeStoryId) return;
 
-    const unsub = storyRepository.subscribe(roomId, activeStoryId, {
-      next: (snapshot) => {
-        if (!snapshot.exists()) return;
-
-        setData(snapshot.data() as Story);
-      },
-    });
+    const changes = supabase
+      .channel('changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stories',
+          filter: `id=eq.${activeStoryId}`,
+        },
+        (payload) => {
+          console.log('supabase change', payload.new);
+        },
+      )
+      .subscribe();
 
     return () => {
-      unsub();
+      changes.unsubscribe();
     };
   }, [roomId, activeStoryId]);
 

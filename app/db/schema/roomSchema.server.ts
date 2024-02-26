@@ -10,7 +10,7 @@ import {relations} from 'drizzle-orm';
 import {stories} from './schema.server';
 
 export const rooms = pgTable('rooms', {
-  id: text('id').primaryKey().notNull().unique(),
+  id: text('id').primaryKey(),
   createdAt: timestamp('created_at', {withTimezone: true, mode: 'string'})
     .defaultNow()
     .notNull(),
