@@ -13,13 +13,34 @@ export const createRoom = async (roomId: string) => {
     .where(eq(rooms.id, roomId))
     .returning();
 
-  return getRoom(roomId);
+  const room = await getRoom(roomId);
+
+  if (!room) throw new Error('Error creating room');
+  return room;
 };
 
-export const getRoom = async (roomId: string) =>
-  db.query.rooms.findFirst({
+export const getRoom = async (roomId: string) => {
+  const room = await db.query.rooms.findFirst({
     where: eq(rooms.id, roomId),
     with: {
-      activeStory: true,
+      activeStory: {
+        with: {
+          votes: {
+            columns: {
+              points: true,
+              userId: true,
+            },
+            with: {
+              user: {
+                columns: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
+  return room;
+};
