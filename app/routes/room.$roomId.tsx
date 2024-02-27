@@ -19,7 +19,7 @@ import classNames from 'classnames';
 import {createRoom, getRoom} from '~/db/rooms.server';
 import {trpc} from '~/utils/trpc';
 import {trpcCaller} from '~/trpc/trpc.server';
-import {createCaller} from '~/trpc/routers/_app';
+import {createCaller, loaderTrpc} from '~/trpc/routers/_app';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -28,7 +28,8 @@ const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
 export const loader = async (args: LoaderFunctionArgs) => {
   const {params} = args;
   if (!params.roomId) throw new Error('missing room ID');
-  const trpc = createCaller(args);
+
+  const trpc = loaderTrpc(args);
 
   return json(await trpc.rooms.get(params.roomId!));
 };
