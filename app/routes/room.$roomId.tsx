@@ -1,25 +1,15 @@
-import {
-  LinksFunction,
-  LoaderFunction,
-  LoaderFunctionArgs,
-  json,
-} from '@remix-run/node';
+import {LinksFunction, LoaderFunctionArgs, json} from '@remix-run/node';
 import {useLoaderData, useParams} from '@remix-run/react';
-import {useEffect, useState} from 'react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
-import {useActiveStory} from '~/hooks/useActiveStory';
-import {usePresentUsers} from '~/hooks/usePresentUsers';
-import {useRoom} from '~/hooks/useRoom';
 import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
-import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
-import {createRoom, getRoom} from '~/db/rooms.server';
 import {trpc} from '~/utils/trpc';
-import {trpcCaller} from '~/trpc/trpc.server';
-import {createCaller, loaderTrpc} from '~/trpc/routers/_app';
+import {useDisclosure} from '@mantine/hooks';
+import {usePresenceNext} from '~/hooks/usePresenceNext';
+import {loaderTrpc} from '~/trpc/routers/_app';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -36,51 +26,41 @@ export const loader = async (args: LoaderFunctionArgs) => {
 
 export default function Room() {
   const {roomId} = useParams();
+  if (!roomId) throw Error('missing param');
+
   const {width, height} = useWindowSize();
-  const [shouldShowConfetti, setConfetti] = useState(false);
+
+  const [shouldShowConfetti, setConfetti] = useDisclosure(false, {
+    onOpen: () => {
+      setTimeout(() => setConfetti.close(), 5000);
+    },
+  });
+  const [displayVotes, displayVoteHandlers] = useDisclosure(false);
+
+  const {broadcastVote, presentUsers} = usePresenceNext(roomId);
+
+  const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
+  const submitVoteMutation = trpc.story.submitVote.useMutation();
+
   const currentUser = useRequireCurrentUser();
+
   const initialData = useLoaderData<typeof loader>();
 
-  if (!roomId) throw Error('missing param');
-  const {data, isLoading} = trpc.rooms.get.useQuery(roomId, {initialData});
-  console.log(isLoading);
+  const {data} = trpc.rooms.get.useQuery(roomId, {initialData});
 
-  const {room, loading} = useRoom(roomId);
-  if (data) {
-    console.log(data);
-  }
+  if (!data.activeStory) return 'missing active story';
+  const {description, id} = data.activeStory;
 
-  const {data: presentUsers, loading: usersLoading} = usePresentUsers(roomId);
-  const {
-    data: activeStory,
-    submitVote,
-    currentUserVote,
-    clearVotes,
-    nextStory,
-    setDisplayVotes,
-    everyoneVoted,
-    averageVote,
-    hasConsensus,
-  } = useActiveStory(initialData.activeStoryId?.toString());
+  const submitVote = (voteValue: number) => {
+    submitVoteMutation.mutate({
+      storyId: id,
+      userId: currentUser.uid,
+      points: voteValue.toString(),
+    });
 
-  useEffect(() => {
-    if (!activeStory) return;
+    broadcastVote(voteValue);
+  };
 
-    if (hasConsensus) {
-      setConfetti(true);
-      setTimeout(() => setConfetti(false), 5000);
-    }
-  }, [activeStory, activeStory?.votes, hasConsensus, presentUsers?.length]);
-
-  useEffect(() => {
-    if (everyoneVoted) {
-      setDisplayVotes(true);
-    }
-  }, [everyoneVoted, setDisplayVotes]);
-
-  if (loading || !room || !activeStory || usersLoading) return;
-
-  const {description} = activeStory;
   return (
     <div className="flex flex-col gap-2 ">
       <div className="flex items-center gap-4 h-24">
@@ -95,29 +75,27 @@ export default function Room() {
             className="m-0 min-h-32 w-1/2"
             value={description || ''}
             onChange={async (e) => {
-              storyRepository.updateStory(roomId, room.activeStoryId, {
-                description: e.target.value,
-              });
+              // TODO way to update and sync story description
             }}
           />
           <button
             style={{height: '100%', margin: '0'}}
             onClick={() => {
-              nextStory();
+              // TODO Next Story fn
             }}
           >
             Next Story
           </button>
         </div>
-        <small className="opacity-50 mt-0">
-          Story ID: {room.activeStoryId}
-        </small>
+        <small className="opacity-50 mt-0">Story ID: {id}</small>
       </div>
       <div className="flex gap-3">
         <button
           className="w-1/2 bg-neutral-600"
           onClick={() => {
-            clearVotes();
+            // TODO:: Need to clear local presence votes
+            // Clear Votes
+            clearVotesMutation.mutate(id);
           }}
         >
           Clear Votes
@@ -125,7 +103,7 @@ export default function Room() {
         <button
           className={classNames('w-1/2 bg-green-500 ', {})}
           onClick={() => {
-            setDisplayVotes(true);
+            displayVoteHandlers.open();
           }}
         >
           Show Votes
@@ -134,7 +112,8 @@ export default function Room() {
 
       <div className="flex items-center gap-4">
         <h3 className="m-0 text-2xl p-0">Results:</h3>
-        {activeStory.displayVotes ? (
+        {/* TODO fix this */}
+        {false ? (
           <>
             <p>
               Average: <mark>{averageVote ?? 0}</mark>
@@ -170,9 +149,10 @@ export default function Room() {
               <button
                 key={value}
                 className={classNames({
-                  'bg-green-500': value == currentUserVote?.value,
+                  // TODO:: Fix this
+                  // 'bg-green-500': value == currentUserVote?.value,
                 })}
-                onClick={() => submitVote(currentUser.uid, value)}
+                onClick={() => submitVote(value)}
               >
                 {value}
               </button>
@@ -186,26 +166,22 @@ export default function Room() {
             <p className="text-2xl font-bold w-1/2">Person</p>
           </div>
           <div className="flex flex-col gap-4">
-            {presentUsers!.map((player) => {
-              const playerVoted = activeStory.votes[player.uid];
+            {Object.values(presentUsers)?.map((user) => {
+              const playerVoted = user.vote;
               return (
-                <div className={'grid grid-cols-2 gap-2'} key={player.name}>
-                  {activeStory.displayVotes ? (
-                    <div className="text-9xl">
-                      {activeStory?.votes[player.uid]?.value ?? '?'}
-                    </div>
+                <div className={'grid grid-cols-2 gap-2'} key={user.name}>
+                  {displayVotes ? (
+                    <div className="text-9xl">{user.vote ?? '?'}</div>
                   ) : (
                     <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">
                       {playerVoted && <div>✅</div>}
                     </div>
                   )}
                   <div className="player text-center">
-                    <div>{player.name || player.email}</div>
+                    <div>{user.name || user.email}</div>
                     <div>
-                      <img
-                        src={player.photoURL}
-                        alt={`player: ${player.name}`}
-                      />
+                      {/* TODO::Get user images */}
+                      {/* <img src={user.photoURL} alt={`player: ${user.name}`} /> */}
                     </div>
                   </div>
                 </div>

@@ -2,7 +2,6 @@
 
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {httpBatchLink} from '@trpc/client';
-import type {AppRouter} from '~/trpc/routers/_app';
 import {trpc} from '~/utils/trpc';
 
 import {cssBundleHref} from '@remix-run/css-bundle';
@@ -111,7 +110,7 @@ export default function App() {
       }
       setLoading(false);
     });
-  }, []);
+  }, [location]);
 
   return (
     <html lang="en">

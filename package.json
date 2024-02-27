@@ -45,6 +45,7 @@
     "classnames": "^2.5.1",
     "clsx": "^2.1.0",
     "drizzle-orm": "^0.29.3",
+    "drizzle-zod": "^0.5.1",
     "firebase": "^10.7.2",
     "human-id": "^4.1.0",
     "isbot": "^4.1.0",
