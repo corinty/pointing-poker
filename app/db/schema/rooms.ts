@@ -7,7 +7,7 @@ import {
   boolean,
 } from 'drizzle-orm/pg-core';
 import {relations} from 'drizzle-orm';
-import {stories} from './schema.server';
+import {stories} from './stories';
 
 export const rooms = pgTable('rooms', {
   id: text('id').primaryKey(),
@@ -21,10 +21,13 @@ export const rooms = pgTable('rooms', {
   displayVotes: boolean('display_votes').default(false).notNull(),
 });
 
-export const roomRelations = relations(rooms, ({many, one}) => ({
+export const roomsRelations = relations(rooms, ({many, one}) => ({
   stories: many(stories),
   activeStory: one(stories, {
     fields: [rooms.activeStoryId],
     references: [stories.id],
   }),
 }));
+
+export type SelectRoom = typeof rooms.$inferSelect;
+export type InsertRoom = typeof rooms.$inferInsert;

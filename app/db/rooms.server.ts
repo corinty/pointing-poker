@@ -1,7 +1,7 @@
 import {eq} from 'drizzle-orm';
 import {db} from './drizzle.server';
-import {rooms} from './schema/roomSchema.server';
-import {stories} from './schema/schema.server';
+import {rooms} from './schema/rooms';
+import {stories} from './schema/stories';
 
 export const createRoom = async (roomId: string) => {
   await db.insert(rooms).values({id: roomId}).onConflictDoNothing();

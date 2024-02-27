@@ -8,8 +8,8 @@ import {
   bigserial,
 } from 'drizzle-orm/pg-core';
 
-import {rooms} from './roomSchema.server';
-import {votes} from './votesSchema.server';
+import {rooms} from './rooms';
+import {votes} from './votes';
 
 export const stories = pgTable('stories', {
   id: bigserial('id', {mode: 'number'}).primaryKey(),

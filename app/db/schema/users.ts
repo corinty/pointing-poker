@@ -7,10 +7,6 @@ import {
   unique,
 } from 'drizzle-orm/pg-core';
 
-export * from './roomSchema.server';
-export * from './storiesSchema.server';
-export * from './votesSchema.server';
-
 export const users = pgTable(
   'users',
   {

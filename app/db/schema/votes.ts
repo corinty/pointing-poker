@@ -1,7 +1,7 @@
 import {pgTable, bigint, timestamp, numeric, uuid} from 'drizzle-orm/pg-core';
 
-import {stories} from './storiesSchema.server';
-import {users} from './schema.server';
+import {stories} from './stories';
+import {users} from './users';
 import {relations} from 'drizzle-orm';
 
 export const votes = pgTable('votes', {

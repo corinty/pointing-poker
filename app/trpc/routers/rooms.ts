@@ -8,7 +8,4 @@ export const roomsRouter = {
     if (room) return room;
     return createRoom(input);
   }),
-  create: publicProcedure
-    .input(z.string())
-    .query((opts) => createRoom(opts.input)),
 };
