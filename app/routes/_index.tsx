@@ -1,5 +1,5 @@
 import type {ActionFunctionArgs, LinksFunction} from '@remix-run/node';
-import {Form, redirect, useNavigate, Link} from '@remix-run/react';
+import {redirect, Link} from '@remix-run/react';
 import {humanId} from 'human-id';
 import styles from '~/styles/home.css';
 import {initializeFirestore} from '~/db/firestore';
@@ -52,7 +52,7 @@ export default function Index() {
               prefetch={joinRoomValue.length > 0 ? 'intent' : 'none'}
               className="button m-0 w-1/2 text-center"
             >
-              Join us
+              Join Room
             </Link>
           </div>
         </div>

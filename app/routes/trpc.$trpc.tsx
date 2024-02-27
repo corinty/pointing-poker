@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs as LoaderArgs,
 } from '@remix-run/node';
 import {fetchRequestHandler} from '@trpc/server/adapters/fetch';
-import {createContext} from '~/trpc/context';
+import {createContext} from '~/trpc/context.server';
 import {appRouter} from '~/trpc/routers/_app';
 
 export const loader = async (args: LoaderArgs) => {

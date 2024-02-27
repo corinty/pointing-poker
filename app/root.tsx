@@ -1,4 +1,10 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
+
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import {httpBatchLink} from '@trpc/client';
+import type {AppRouter} from '~/trpc/routers/_app';
+import {trpc} from '~/utils/trpc';
+
 import {cssBundleHref} from '@remix-run/css-bundle';
 import '@mantine/core/styles.css';
 import '@mantine/nprogress/styles.css';
@@ -76,6 +82,22 @@ const signIn = (setUser) => {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const [queryClient] = useState(() => new QueryClient());
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      links: [
+        httpBatchLink({
+          url: 'http://localhost:3000/trpc',
+          // You can pass any HTTP headers you wish here
+          async headers() {
+            return {};
+          },
+        }),
+      ],
+    }),
+  );
+
   const location = useLocation();
 
   const loginRequired = !!location.state?.loginRequired;
@@ -101,46 +123,50 @@ export default function App() {
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider defaultColorScheme="dark">
-          <GlobalLoadingIndicator />
-          <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
-            <div>
-              <Link to="/">Home</Link>
-            </div>
-            <div className="sign-in">
-              {!loading && user && user.name}
-              {!loading && !user && (
-                <button
-                  type="button"
-                  className={classNames('animate__animated', {
-                    animate__wobble: loginRequired,
-                    'bg-purple-700': loginRequired,
-                    'text-white': loginRequired,
-                  })}
-                  onClick={() => signIn(setUser)}
-                >
-                  Sign in
-                </button>
+        <trpc.Provider client={trpcClient} queryClient={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            <MantineProvider defaultColorScheme="dark">
+              <GlobalLoadingIndicator />
+              <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
+                <div>
+                  <Link to="/">Home</Link>
+                </div>
+                <div className="sign-in">
+                  {!loading && user && user.name}
+                  {!loading && !user && (
+                    <button
+                      type="button"
+                      className={classNames('animate__animated', {
+                        animate__wobble: loginRequired,
+                        'bg-purple-700': loginRequired,
+                        'text-white': loginRequired,
+                      })}
+                      onClick={() => signIn(setUser)}
+                    >
+                      Sign in
+                    </button>
+                  )}
+                </div>
+              </nav>
+              {!loading && user && <UserProvider user={user} />}
+              {!loading && !user && <Outlet />}
+              {loginRequired && (
+                <div className="flex justify-center">
+                  <button
+                    className="notice w-1/2 text-center text-white"
+                    onClick={() => signIn(setUser)}
+                  >
+                    ⬆️ Please sign in ⬆️
+                  </button>
+                </div>
               )}
-            </div>
-          </nav>
-          {!loading && user && <UserProvider user={user} />}
-          {!loading && !user && <Outlet />}
-          {loginRequired && (
-            <div className="flex justify-center">
-              <button
-                className="notice w-1/2 text-center text-white"
-                onClick={() => signIn(setUser)}
-              >
-                ⬆️ Please sign in ⬆️
-              </button>
-            </div>
-          )}
-          <Toaster />
-          <ScrollRestoration />
-          <Scripts />
-          <LiveReload />
-        </MantineProvider>
+              <Toaster />
+              <ScrollRestoration />
+              <Scripts />
+              <LiveReload />
+            </MantineProvider>
+          </QueryClientProvider>
+        </trpc.Provider>
       </body>
     </html>
   );

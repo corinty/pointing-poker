@@ -17,20 +17,20 @@ import {storyRepository} from '~/db/stories';
 import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
 import {createRoom, getRoom} from '~/db/rooms.server';
+import {trpc} from '~/utils/trpc';
+import {trpcCaller} from '~/trpc/trpc.server';
+import {createCaller} from '~/trpc/routers/_app';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
 const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
 
-export const loader = async ({params}: LoaderFunctionArgs) => {
+export const loader = async (args: LoaderFunctionArgs) => {
+  const {params} = args;
   if (!params.roomId) throw new Error('missing room ID');
+  const trpc = createCaller(args);
 
-  const room = await getRoom(params.roomId);
-  console.log('loader', room);
-
-  if (room) return json(room);
-
-  return json(await createRoom(params.roomId));
+  return json(await trpc.rooms.get(params.roomId!));
 };
 
 export default function Room() {
@@ -41,8 +41,13 @@ export default function Room() {
   const initialData = useLoaderData<typeof loader>();
 
   if (!roomId) throw Error('missing param');
+  const {data, isLoading} = trpc.rooms.get.useQuery(roomId, {initialData});
+  console.log(isLoading);
 
   const {room, loading} = useRoom(roomId);
+  if (data) {
+    console.log(data);
+  }
 
   const {data: presentUsers, loading: usersLoading} = usePresentUsers(roomId);
   const {
