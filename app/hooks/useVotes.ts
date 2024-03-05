@@ -1,12 +1,8 @@
-import {useEffect, useMemo, useState} from 'react';
-import {storyRepository} from '~/db/stories';
-import {serverTimestamp} from 'firebase/firestore';
-import {supabase} from '~/db/supabase';
+import {useMemo, useState} from 'react';
 import {useCurrentUser} from './useCurrentUser';
 import {useSupabasePresence} from './useSupabasePresence';
 import {humanId} from 'human-id';
 import {LocalVote, LocalVotes as LocalVotes} from './usePresenceNext';
-import {trpc} from '~/utils/trpc';
 
 // TODO:: Move this to env
 const anonMode = true;
@@ -81,7 +77,9 @@ export function useVotes(roomId: string) {
     submittedVotes,
     averageVote,
     hasConsensus,
-    nextStory: () => storyRepository.createStory(roomId, {setActive: true}),
+    nextStory: () => {
+      // TODO:: Next story
+    },
   };
 }
 

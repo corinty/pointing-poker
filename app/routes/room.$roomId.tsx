@@ -49,8 +49,7 @@ export default function Room() {
 
   const {data} = trpc.rooms.get.useQuery(roomId, {initialData});
 
-  const {averageVote, everyoneVoted, hasConsensus, votes, submittedVotes} =
-    useVotes(roomId);
+  const {averageVote, hasConsensus, submittedVotes} = useVotes(roomId);
 
   if (!data.activeStory) throw new Error('missing active story');
   const {description, id} = data.activeStory;
@@ -116,8 +115,7 @@ export default function Room() {
 
       <div className="flex items-center gap-4">
         <h3 className="m-0 text-2xl p-0">Results:</h3>
-        {/* TODO fix this */}
-        {false ? (
+        {displayVotes ? (
           <>
             <p>
               Average: <mark>{averageVote}</mark>

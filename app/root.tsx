@@ -23,9 +23,7 @@ import {useEffect, useState} from 'react';
 import simpledotcss from 'simpledotcss/simple.css';
 import styles from '~/globals.css';
 import animateCss from 'animate.css/animate.css';
-import {User, userRepository} from './db/users';
 import {UserContext} from './hooks/useCurrentUser';
-import {usePresence} from './hooks/usePresence';
 import {Toaster} from 'react-hot-toast';
 import classNames from 'classnames';
 import {ColorSchemeScript, MantineProvider} from '@mantine/core';
@@ -47,41 +45,7 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
 ];
 
-const signIn = (setUser) => {
-  const provider = new GithubAuthProvider();
-  const auth = getAuth();
-
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      // This gives you a GitHub Access Token. You can use it to access the GitHub API.
-      const credential = GithubAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-
-      // The signed-in user info.
-      const firebaseUser = result.user;
-
-      console.log('Setting user to ', firebaseUser);
-      setUser(userRepository.fromFirebaseToUser(firebaseUser));
-      userRepository.save(firebaseUser);
-    })
-    .catch((error) => {
-      // Handle Errors here.
-
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      // The email of the user's account used.
-      const email = error.customData.email;
-      // The AuthCredential type that was used.
-      const credential = GithubAuthProvider.credentialFromError(error);
-      console.log('error', error, errorCode, errorMessage, email, credential);
-      // ...
-    });
-};
-
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useState(() =>
     trpc.createClient({
@@ -97,20 +61,7 @@ export default function App() {
     }),
   );
 
-  const location = useLocation();
-
-  const loginRequired = !!location.state?.loginRequired;
-
-  useEffect(() => {
-    getAuth().onAuthStateChanged((firebaseUser) => {
-      if (firebaseUser) {
-        const user = userRepository.fromFirebaseToUser(firebaseUser);
-        location.state = null;
-        setUser(user);
-      }
-      setLoading(false);
-    });
-  }, [location]);
+  const loginRequired = false;
 
   return (
     <html lang="en">
@@ -131,8 +82,7 @@ export default function App() {
                   <Link to="/">Home</Link>
                 </div>
                 <div className="sign-in">
-                  {!loading && user && user.name}
-                  {!loading && !user && (
+                  {true && (
                     <button
                       type="button"
                       className={classNames('animate__animated', {
@@ -140,20 +90,23 @@ export default function App() {
                         'bg-purple-700': loginRequired,
                         'text-white': loginRequired,
                       })}
-                      onClick={() => signIn(setUser)}
+                      onClick={() => {
+                        // TODO:: Signin
+                      }}
                     >
                       Sign in
                     </button>
                   )}
                 </div>
               </nav>
-              {!loading && user && <UserProvider user={user} />}
-              {!loading && !user && <Outlet />}
+              <Outlet />
               {loginRequired && (
                 <div className="flex justify-center">
                   <button
                     className="notice w-1/2 text-center text-white"
-                    onClick={() => signIn(setUser)}
+                    onClick={() => {
+                      // TODO:: Sign
+                    }}
                   >
                     ⬆️ Please sign in ⬆️
                   </button>
@@ -168,14 +121,5 @@ export default function App() {
         </trpc.Provider>
       </body>
     </html>
-  );
-}
-
-function UserProvider({user}) {
-  usePresence(user);
-  return (
-    <UserContext.Provider value={user}>
-      <Outlet />
-    </UserContext.Provider>
   );
 }

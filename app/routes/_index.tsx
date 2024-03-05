@@ -1,8 +1,7 @@
 import type {ActionFunctionArgs, LinksFunction} from '@remix-run/node';
-import {redirect, Link} from '@remix-run/react';
+import {redirect, Link, useNavigate} from '@remix-run/react';
 import {humanId} from 'human-id';
 import styles from '~/styles/home.css';
-import {initializeFirestore} from '~/db/firestore';
 import {useState} from 'react';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
@@ -16,12 +15,14 @@ export const action = async ({request}: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  initializeFirestore();
   const [joinRoomValue, setJoinRoomValue] = useState('');
+  const navigate = useNavigate();
   const roomCode = humanId({
     separator: '-',
     capitalize: false,
   });
+
+  const roomUrl = `/room/${joinRoomValue}`;
 
   return (
     <div>
@@ -41,6 +42,10 @@ export default function Index() {
               onChange={(e) => {
                 setJoinRoomValue(e.target.value);
               }}
+              onKeyDown={(e) => {
+                if (e.code !== 'Enter') return;
+                navigate(roomUrl);
+              }}
               value={joinRoomValue}
               name="join-room-code"
               className="w-1/2"
@@ -48,7 +53,7 @@ export default function Index() {
               required
             />
             <Link
-              to={`/room/${joinRoomValue}`}
+              to={roomUrl}
               prefetch={joinRoomValue.length > 0 ? 'intent' : 'none'}
               className="button m-0 w-1/2 text-center"
             >
