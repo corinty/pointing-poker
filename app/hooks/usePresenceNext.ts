@@ -6,11 +6,11 @@ import {useCurrentUser} from './useCurrentUser';
 import {SelectUser} from '~/db/schema/users';
 import {humanId} from 'human-id';
 
-type LocalVoteMap = {
+export type LocalVotes = {
   [userId: string]: LocalVote;
 };
 
-type LocalVote = Pick<SelectUser, 'name' | 'email'> & {
+export type LocalVote = Pick<SelectUser, 'name' | 'email'> & {
   vote: number | null;
   updatedAt: Date;
 };
@@ -28,7 +28,7 @@ export function usePresenceNext(
   );
 
   const user = useCurrentUser();
-  const [presentUsers, setPresentUsers] = useState<LocalVoteMap>({});
+  const [presentUsers, setPresentUsers] = useState<LocalVotes>({});
 
   const boradcastLocalVote = (vote: number | null) => {
     const msg = {
@@ -64,7 +64,7 @@ export function usePresenceNext(
           if (!localVote) throw new Error('Error with syncing presence state');
           acc[key] = localVote;
           return acc;
-        }, {} as LocalVoteMap);
+        }, {} as LocalVotes);
 
         console.log(nextState);
         setPresentUsers(nextState);

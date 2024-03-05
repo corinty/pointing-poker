@@ -10,6 +10,7 @@ import {trpc} from '~/utils/trpc';
 import {useDisclosure} from '@mantine/hooks';
 import {usePresenceNext} from '~/hooks/usePresenceNext';
 import {loaderTrpc} from '~/trpc/routers/_app';
+import {useVotes} from '~/hooks/useVotes';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -48,7 +49,10 @@ export default function Room() {
 
   const {data} = trpc.rooms.get.useQuery(roomId, {initialData});
 
-  if (!data.activeStory) return 'missing active story';
+  const {averageVote, everyoneVoted, hasConsensus, votes, submittedVotes} =
+    useVotes(roomId);
+
+  if (!data.activeStory) throw new Error('missing active story');
   const {description, id} = data.activeStory;
 
   const submitVote = (voteValue: number) => {
@@ -74,7 +78,7 @@ export default function Room() {
           <textarea
             className="m-0 min-h-32 w-1/2"
             value={description || ''}
-            onChange={async (e) => {
+            onChange={async () => {
               // TODO way to update and sync story description
             }}
           />
@@ -116,11 +120,10 @@ export default function Room() {
         {false ? (
           <>
             <p>
-              Average: <mark>{averageVote ?? 0}</mark>
+              Average: <mark>{averageVote}</mark>
             </p>
             <p>
-              Number of submitted Votes:{' '}
-              <mark>{Object.keys(activeStory.votes).length}</mark>
+              Number of submitted Votes: <mark>{submittedVotes.length}</mark>
             </p>
             <p className="flex gap-2">
               {' '}
