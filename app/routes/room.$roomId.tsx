@@ -38,8 +38,6 @@ export default function Room() {
   });
   const [displayVotes, displayVoteHandlers] = useDisclosure(false);
 
-  const {broadcastVote, presentUsers} = usePresenceNext(roomId);
-
   const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
   const submitVoteMutation = trpc.story.submitVote.useMutation();
 
@@ -60,8 +58,6 @@ export default function Room() {
       userId: currentUser.uid,
       points: voteValue.toString(),
     });
-
-    broadcastVote(voteValue);
   };
 
   return (

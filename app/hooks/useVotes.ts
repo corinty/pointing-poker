@@ -1,8 +1,6 @@
 import {useMemo, useState} from 'react';
 import {useCurrentUser} from './useCurrentUser';
-import {useSupabasePresence} from './useSupabasePresence';
 import {humanId} from 'human-id';
-import {LocalVote, LocalVotes as LocalVotes} from './usePresenceNext';
 
 // TODO:: Move this to env
 const anonMode = true;
@@ -17,38 +15,6 @@ export function useVotes(roomId: string) {
 
   const [votes, setVotes] = useState<LocalVotes>({});
 
-  const channel = useSupabasePresence(roomId, {
-    key: anonMode ? anonId : user.uid,
-    sync: (channel) => {
-      const presenceState = channel.presenceState<LocalVote>();
-
-      const nextState = Object.keys(presenceState).reduce((acc, key) => {
-        const localVote = presenceState[key].at(0);
-
-        if (!localVote) throw new Error('Error with syncing presence state');
-        acc[key] = localVote;
-        return acc;
-      }, {} as LocalVotes);
-
-      setVotes(nextState);
-    },
-    onConnect: () => {
-      // TODO:: replace with server inital value
-      boradcastLocalVote(null);
-    },
-  });
-
-  function boradcastLocalVote(vote: number | null) {
-    const msg = {
-      vote,
-      // TODO:: Get real user data
-      name: anonMode ? anonId : 'Corin',
-      email: null,
-      updatedAt: new Date(),
-    } satisfies LocalVote;
-
-    channel?.track(msg);
-  }
   const voteEntires = Object.values(votes).map((entry) => entry.vote);
 
   const everyoneVoted = voteEntires.every((vote) => vote !== null);
