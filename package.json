@@ -58,11 +58,13 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-use": "^17.5.0",
+    "remix-utils": "^7.6.0",
     "simpledotcss": "^2.2.1",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "type-fest": "^4.10.2",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zoo-ids": "^2.0.7"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

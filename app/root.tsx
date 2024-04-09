@@ -16,18 +16,24 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLocation,
+  json,
+  useLoaderData,
 } from '@remix-run/react';
-import {GithubAuthProvider, getAuth, signInWithPopup} from 'firebase/auth';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import simpledotcss from 'simpledotcss/simple.css';
 import styles from '~/globals.css';
 import animateCss from 'animate.css/animate.css';
-import {UserContext} from './hooks/useCurrentUser';
 import {Toaster} from 'react-hot-toast';
 import classNames from 'classnames';
 import {ColorSchemeScript, MantineProvider} from '@mantine/core';
 import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator';
+import {getBrowserEnv} from './utils/getBrowserEnv';
+
+export async function loader() {
+  return json({
+    ENV: getBrowserEnv(),
+  });
+}
 
 export const links: LinksFunction = () => [
   {
@@ -47,11 +53,13 @@ export const links: LinksFunction = () => [
 
 export default function App() {
   const [queryClient] = useState(() => new QueryClient());
+  const data = useLoaderData<typeof loader>();
+  const {ENV} = data;
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: 'http://localhost:3000/trpc',
+          url: `${ENV.SITE_URL ? ENV.SITE_URL : 'http://localhost:3000'}/trpc`,
           // You can pass any HTTP headers you wish here
           async headers() {
             return {};
@@ -100,6 +108,11 @@ export default function App() {
                 </div>
               </nav>
               <Outlet />
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `window.ENV = ${JSON.stringify(ENV)}`,
+                }}
+              />
               {loginRequired && (
                 <div className="flex justify-center">
                   <button

@@ -8,9 +8,10 @@ import {useRequireCurrentUser} from '~/hooks/useRequireCurrentUser';
 import classNames from 'classnames';
 import {trpc} from '~/utils/trpc';
 import {useDisclosure} from '@mantine/hooks';
-import {usePresenceNext} from '~/hooks/usePresenceNext';
 import {loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
+import {useCurrentUser} from '~/hooks/useCurrentUser';
+import {SelectUser} from '~/db/schema/users';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -21,7 +22,6 @@ export const loader = async (args: LoaderFunctionArgs) => {
   if (!params.roomId) throw new Error('missing room ID');
 
   const trpc = loaderTrpc(args);
-
   return json(await trpc.rooms.get(params.roomId!));
 };
 
@@ -41,9 +41,8 @@ export default function Room() {
   const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
   const submitVoteMutation = trpc.story.submitVote.useMutation();
 
-  const currentUser = useRequireCurrentUser();
-
   const initialData = useLoaderData<typeof loader>();
+  const user = useCurrentUser();
 
   const {data} = trpc.rooms.get.useQuery(roomId, {initialData});
 
@@ -55,10 +54,11 @@ export default function Room() {
   const submitVote = (voteValue: number) => {
     submitVoteMutation.mutate({
       storyId: id,
-      userId: currentUser.uid,
+      userId: currentUser.id!,
       points: voteValue.toString(),
     });
   };
+  return <h1>TODO this again...{user.name}</h1>;
 
   return (
     <div className="flex flex-col gap-2 ">

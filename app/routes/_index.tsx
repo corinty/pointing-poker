@@ -1,10 +1,20 @@
 import type {ActionFunctionArgs, LinksFunction} from '@remix-run/node';
-import {redirect, Link, useNavigate} from '@remix-run/react';
+import {
+  redirect,
+  Link,
+  useNavigate,
+  json,
+  useLoaderData,
+} from '@remix-run/react';
 import styles from '~/styles/home.css';
 import {useState} from 'react';
 import {generateRoomCode} from '~/utils/generateRoomCode';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
+
+export function loader() {
+  return json(generateRoomCode());
+}
 
 export const action = async ({request}: ActionFunctionArgs) => {
   const formData = await request.formData();
@@ -17,7 +27,7 @@ export const action = async ({request}: ActionFunctionArgs) => {
 export default function Index() {
   const [joinRoomValue, setJoinRoomValue] = useState('');
   const navigate = useNavigate();
-  const roomCode = generateRoomCode();
+  const roomCode = useLoaderData<typeof loader>();
   const roomUrl = `/room/${joinRoomValue}`;
 
   return (
