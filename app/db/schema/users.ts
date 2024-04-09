@@ -1,17 +1,19 @@
 import {
-  pgTable,
+  sqliteTable,
   foreignKey,
-  timestamp,
   text,
-  uuid,
   unique,
-} from 'drizzle-orm/pg-core';
+  integer,
+} from 'drizzle-orm/sqlite-core';
+import {randomUUID} from 'crypto';
 
-export const users = pgTable(
+export const users = sqliteTable(
   'users',
   {
-    id: uuid('id').primaryKey().notNull(),
-    createdAt: timestamp('created_at', {withTimezone: true, mode: 'string'}),
+    id: text('id').primaryKey().notNull().default(randomUUID()),
+    createdAt: integer('created_at', {mode: 'timestamp_ms'}).default(
+      new Date(),
+    ),
     name: text('name'),
     email: text('email'),
   },

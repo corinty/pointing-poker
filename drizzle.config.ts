@@ -3,8 +3,8 @@ import type {Config} from 'drizzle-kit';
 export default {
   schema: './app/db/schema',
   out: './app/db/drizzle',
-  driver: 'pg',
+  driver: 'better-sqlite',
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL!,
+    url: 'db.sql',
   },
 } satisfies Config;

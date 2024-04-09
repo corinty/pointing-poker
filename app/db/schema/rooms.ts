@@ -1,24 +1,24 @@
 import {
-  pgTable,
-  type AnyPgColumn,
-  bigint,
-  timestamp,
+  sqliteTable,
+  integer,
   text,
-  boolean,
-} from 'drizzle-orm/pg-core';
+  AnySQLiteColumn,
+} from 'drizzle-orm/sqlite-core';
 import {relations} from 'drizzle-orm';
 import {stories} from './stories';
 
-export const rooms = pgTable('rooms', {
-  id: text('id').primaryKey(),
-  createdAt: timestamp('created_at', {withTimezone: true, mode: 'string'})
-    .defaultNow()
-    .notNull(),
-  activeStoryId: bigint('active_story_id', {mode: 'number'}).references(
-    (): AnyPgColumn => stories.id,
+export const rooms = sqliteTable('rooms', {
+  id: text('id').primaryKey().notNull(),
+  createdAt: integer('created_at', {mode: 'timestamp_ms'})
+    .notNull()
+    .default(new Date()),
+  activeStoryId: integer('active_story_id', {mode: 'number'}).references(
+    (): AnySQLiteColumn => stories.id,
     {onDelete: 'set null', onUpdate: 'cascade'},
   ),
-  displayVotes: boolean('display_votes').default(false).notNull(),
+  displayVotes: integer('display_votes', {mode: 'boolean'})
+    .default(false)
+    .notNull(),
 });
 
 export const roomsRelations = relations(rooms, ({many, one}) => ({

@@ -1,37 +1,35 @@
 import {
-  pgTable,
-  bigint,
-  timestamp,
+  sqliteTable,
   numeric,
-  uuid,
+  integer,
+  text,
   primaryKey,
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/sqlite-core';
 
 import {stories} from './stories';
 import {users} from './users';
 import {relations} from 'drizzle-orm';
 import {createInsertSchema} from 'drizzle-zod';
 
-export const votes = pgTable(
+export const votes = sqliteTable(
   'votes',
   {
-    createdAt: timestamp('created_at', {
-      withTimezone: true,
-      mode: 'string',
+    createdAt: integer('created_at', {
+      mode: 'timestamp_ms',
     })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp('updated_at', {
-      mode: 'string',
+      .notNull()
+      .default(new Date()),
+    updatedAt: integer('updated_at', {
+      mode: 'timestamp_ms',
     })
-      .defaultNow()
-      .notNull(),
+      .notNull()
+      .default(new Date()),
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    storyId: bigint('story_id', {mode: 'number'})
+    storyId: integer('story_id')
       .notNull()
       .references(() => stories.id, {onDelete: 'cascade', onUpdate: 'cascade'}),
     points: numeric('points'),
-    userId: uuid('users')
+    userId: text('users')
       .notNull()
       .references(() => users.id, {onDelete: 'cascade', onUpdate: 'cascade'}),
   },

@@ -1,26 +1,19 @@
 import {InferSelectModel, relations} from 'drizzle-orm';
-import {
-  pgTable,
-  type AnyPgColumn,
-  timestamp,
-  text,
-  numeric,
-  bigserial,
-} from 'drizzle-orm/pg-core';
+import {sqliteTable, text, numeric, integer} from 'drizzle-orm/sqlite-core';
 
 import {rooms} from './rooms';
 import {votes} from './votes';
 
-export const stories = pgTable('stories', {
-  id: bigserial('id', {mode: 'number'}).primaryKey(),
-  createdAt: timestamp('created_at', {withTimezone: true, mode: 'string'})
-    .defaultNow()
-    .notNull(),
+export const stories = sqliteTable('stories', {
+  id: integer('id', {mode: 'number'}).primaryKey({autoIncrement: true}),
+  createdAt: integer('created_at', {mode: 'timestamp_ms'})
+    .notNull()
+    .default(new Date()),
   description: text('description').default(''),
   finalPoints: numeric('final_points'),
   roomId: text('room_id')
     .notNull()
-    .references((): AnyPgColumn => rooms.id, {
+    .references(() => rooms.id, {
       onDelete: 'cascade',
       onUpdate: 'cascade',
     }),
