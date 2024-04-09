@@ -58,6 +58,7 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-use": "^17.5.0",
+    "remix-auth": "^3.6.0",
     "remix-utils": "^7.6.0",
     "simpledotcss": "^2.2.1",
     "tailwind-merge": "^2.2.1",
