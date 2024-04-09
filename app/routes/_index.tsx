@@ -1,8 +1,8 @@
 import type {ActionFunctionArgs, LinksFunction} from '@remix-run/node';
 import {redirect, Link, useNavigate} from '@remix-run/react';
-import {humanId} from 'human-id';
 import styles from '~/styles/home.css';
 import {useState} from 'react';
+import {generateRoomCode} from '~/utils/generateRoomCode';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -17,11 +17,7 @@ export const action = async ({request}: ActionFunctionArgs) => {
 export default function Index() {
   const [joinRoomValue, setJoinRoomValue] = useState('');
   const navigate = useNavigate();
-  const roomCode = humanId({
-    separator: '-',
-    capitalize: false,
-  });
-
+  const roomCode = generateRoomCode();
   const roomUrl = `/room/${joinRoomValue}`;
 
   return (

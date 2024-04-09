@@ -1,53 +1,107 @@
 {
-  "id": "00000000-0000-0000-0000-000000000000",
-  "prevId": "",
   "version": "5",
-  "dialect": "pg",
+  "dialect": "sqlite",
+  "id": "2b8eb1be-e76e-43d4-8a5c-fb4763df65dc",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "stories": {
-      "name": "stories",
-      "schema": "",
+    "rooms": {
+      "name": "rooms",
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigint",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
+          "autoincrement": false
+        },
+        "active_story_id": {
+          "name": "active_story_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "display_votes": {
+          "name": "display_votes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rooms_active_story_id_stories_id_fk": {
+          "name": "rooms_active_story_id_stories_id_fk",
+          "tableFrom": "rooms",
+          "tableTo": "stories",
+          "columnsFrom": [
+            "active_story_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "stories": {
+      "name": "stories",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": "''"
         },
-        "points": {
-          "name": "points",
+        "final_points": {
+          "name": "final_points",
           "type": "numeric",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "room_id": {
           "name": "room_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "stories_room_id_fkey": {
-          "name": "stories_room_id_fkey",
+        "stories_room_id_rooms_id_fk": {
+          "name": "stories_room_id_rooms_id_fk",
           "tableFrom": "stories",
           "tableTo": "rooms",
-          "schemaTo": "public",
           "columnsFrom": [
             "room_id"
           ],
@@ -61,72 +115,55 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "votes": {
-      "name": "votes",
-      "schema": "",
+    "users": {
+      "name": "users",
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigint",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'ce4a977d-0a5b-4027-a3f5-f5666fac00b9'"
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": false,
+          "autoincrement": false
         },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
+        "name": {
+          "name": "name",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": false,
+          "autoincrement": false
         },
-        "story_id": {
-          "name": "story_id",
-          "type": "bigint",
+        "email": {
+          "name": "email",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
-        },
-        "points": {
-          "name": "points",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "users": {
-          "name": "users",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "users_email_key": {
+          "name": "users_email_key",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
-        "votes_story_id_fkey": {
-          "name": "votes_story_id_fkey",
-          "tableFrom": "votes",
-          "tableTo": "stories",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "story_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "votes_users_fkey": {
-          "name": "votes_users_fkey",
-          "tableFrom": "votes",
+        "users_id_fkey": {
+          "name": "users_id_fkey",
+          "tableFrom": "users",
           "tableTo": "users",
-          "schemaTo": "public",
           "columnsFrom": [
-            "users"
+            "id"
           ],
           "columnsTo": [
             "id"
@@ -138,96 +175,68 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "rooms": {
-      "name": "rooms",
-      "schema": "",
+    "votes": {
+      "name": "votes",
       "columns": {
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
+          "autoincrement": false,
+          "default": "2024-04-09T15:08:29.328Z"
         },
-        "active_story_id": {
-          "name": "active_story_id",
-          "type": "bigint",
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "autoincrement": false,
+          "default": "2024-04-09T15:08:29.328Z"
         },
-        "id": {
-          "name": "id",
+        "story_id": {
+          "name": "story_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points": {
+          "name": "points",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "users": {
+          "name": "users",
           "type": "text",
-          "primaryKey": true,
-          "notNull": true
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "rooms_active_story_id_fkey": {
-          "name": "rooms_active_story_id_fkey",
-          "tableFrom": "rooms",
+        "votes_story_id_stories_id_fk": {
+          "name": "votes_story_id_stories_id_fk",
+          "tableFrom": "votes",
           "tableTo": "stories",
-          "schemaTo": "public",
           "columnsFrom": [
-            "active_story_id"
+            "story_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
+          "onDelete": "cascade",
           "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "rooms_easy_id_key": {
-          "columns": [
-            "id"
-          ],
-          "nullsNotDistinct": false,
-          "name": "rooms_easy_id_key"
-        }
-      }
-    },
-    "users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "users_id_fkey": {
-          "name": "users_id_fkey",
-          "tableFrom": "users",
+        "votes_users_users_id_fk": {
+          "name": "votes_users_users_id_fk",
+          "tableFrom": "votes",
           "tableTo": "users",
-          "schemaTo": "auth",
           "columnsFrom": [
-            "id"
+            "users"
           ],
           "columnsTo": [
             "id"
@@ -236,75 +245,19 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_email_key": {
+      "compositePrimaryKeys": {
+        "votes_users_story_id_pk": {
           "columns": [
-            "email"
+            "story_id",
+            "users"
           ],
-          "nullsNotDistinct": false,
-          "name": "users_email_key"
+          "name": "votes_users_story_id_pk"
         }
-      }
+      },
+      "uniqueConstraints": {}
     }
   },
-  "enums": {
-    "key_status": {
-      "name": "key_status",
-      "values": {
-        "default": "default",
-        "valid": "valid",
-        "invalid": "invalid",
-        "expired": "expired"
-      }
-    },
-    "key_type": {
-      "name": "key_type",
-      "values": {
-        "aead-ietf": "aead-ietf",
-        "aead-det": "aead-det",
-        "hmacsha512": "hmacsha512",
-        "hmacsha256": "hmacsha256",
-        "auth": "auth",
-        "shorthash": "shorthash",
-        "generichash": "generichash",
-        "kdf": "kdf",
-        "secretbox": "secretbox",
-        "secretstream": "secretstream",
-        "stream_xchacha20": "stream_xchacha20"
-      }
-    },
-    "factor_type": {
-      "name": "factor_type",
-      "values": {
-        "totp": "totp",
-        "webauthn": "webauthn"
-      }
-    },
-    "factor_status": {
-      "name": "factor_status",
-      "values": {
-        "unverified": "unverified",
-        "verified": "verified"
-      }
-    },
-    "aal_level": {
-      "name": "aal_level",
-      "values": {
-        "aal1": "aal1",
-        "aal2": "aal2",
-        "aal3": "aal3"
-      }
-    },
-    "code_challenge_method": {
-      "name": "code_challenge_method",
-      "values": {
-        "s256": "s256",
-        "plain": "plain"
-      }
-    }
-  },
-  "schemas": {},
+  "enums": {},
   "_meta": {
     "schemas": {},
     "tables": {},

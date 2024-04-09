@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "remix build",
-    "db:introsepct": " drizzle-kit generate:pg --schema=./src/schema.ts --out=./drizzl",
+    "db:setup": "npm run db:push && npm run db:seed",
+    "db:seed": "node --import tsx --env-file .env ./app/db/drizzle/seed.ts",
+    "db:reset": "node --import tsx --env-file .env ./app/db/drizzle/reset.ts && npm run db:push && npm run  db:seed",
     "db:push": "drizzle-kit push:sqlite",
     "db:studio": "drizzle-kit studio --verbose",
     "dev": "remix dev --manual",
@@ -46,7 +48,6 @@
     "clsx": "^2.1.0",
     "drizzle-orm": "^0.29.5",
     "drizzle-zod": "^0.5.1",
-    "firebase": "^10.7.2",
     "human-id": "^4.1.0",
     "isbot": "^4.1.0",
     "lodash": "^4.17.21",
@@ -55,7 +56,6 @@
     "react": "^18.2.0",
     "react-confetti": "^6.1.0",
     "react-dom": "^18.2.0",
-    "react-firebase-hooks": "^5.1.1",
     "react-hot-toast": "^2.4.1",
     "react-use": "^17.5.0",
     "simpledotcss": "^2.2.1",
@@ -65,12 +65,14 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@remix-run/dev": "^2.5.1",
     "@remix-run/eslint-config": "^2.6.0",
     "@shopify/eslint-plugin": "^44.0.0",
     "@shopify/prettier-config": "^1.1.2",
     "@types/better-sqlite3": "^7.6.9",
     "@types/lodash": "^4.14.202",
+    "@types/node": "^20.12.6",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
@@ -88,7 +90,10 @@
     "postcss-preset-mantine": "^1.13.0",
     "postcss-simple-vars": "^7.0.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.1.6"
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.4"
   },
   "engines": {
     "node": ">=18.0.0"

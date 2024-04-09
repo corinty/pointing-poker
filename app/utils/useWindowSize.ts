@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types */
 import {useState, useEffect} from 'react';
 
 export function on<T extends Window | Document | HTMLElement | EventTarget>(

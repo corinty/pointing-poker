@@ -11,7 +11,7 @@ export const rooms = sqliteTable('rooms', {
   id: text('id').primaryKey().notNull(),
   createdAt: integer('created_at', {mode: 'timestamp_ms'})
     .notNull()
-    .default(new Date()),
+    .$default(() => new Date()),
   activeStoryId: integer('active_story_id', {mode: 'number'}).references(
     (): AnySQLiteColumn => stories.id,
     {onDelete: 'set null', onUpdate: 'cascade'},

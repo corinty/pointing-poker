@@ -1,5 +1,5 @@
 {
-  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx", "postcss.config.cjs"],
+  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx", "postcss.config.cjs", "app/db/drizzle/seedDb.ts"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "isolatedModules": true,

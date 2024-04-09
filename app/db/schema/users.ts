@@ -11,8 +11,8 @@ export const users = sqliteTable(
   'users',
   {
     id: text('id').primaryKey().notNull().default(randomUUID()),
-    createdAt: integer('created_at', {mode: 'timestamp_ms'}).default(
-      new Date(),
+    createdAt: integer('created_at', {mode: 'timestamp_ms'}).$default(
+      () => new Date(),
     ),
     name: text('name'),
     email: text('email'),

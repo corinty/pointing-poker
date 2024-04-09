@@ -8,7 +8,7 @@ export const stories = sqliteTable('stories', {
   id: integer('id', {mode: 'number'}).primaryKey({autoIncrement: true}),
   createdAt: integer('created_at', {mode: 'timestamp_ms'})
     .notNull()
-    .default(new Date()),
+    .$default(() => new Date()),
   description: text('description').default(''),
   finalPoints: numeric('final_points'),
   roomId: text('room_id')

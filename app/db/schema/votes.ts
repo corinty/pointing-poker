@@ -18,13 +18,12 @@ export const votes = sqliteTable(
       mode: 'timestamp_ms',
     })
       .notNull()
-      .default(new Date()),
+      .$default(() => new Date()),
     updatedAt: integer('updated_at', {
       mode: 'timestamp_ms',
     })
       .notNull()
-      .default(new Date()),
-    // You can use { mode: "bigint" } if numbers are exceeding js number limitations
+      .$default(() => new Date()),
     storyId: integer('story_id')
       .notNull()
       .references(() => stories.id, {onDelete: 'cascade', onUpdate: 'cascade'}),
