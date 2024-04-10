@@ -5,11 +5,13 @@ import {FormStrategy} from 'remix-auth-form';
 import invariant from 'invariant';
 
 import {generateId} from 'zoo-ids';
+import randomEmoji from '~/utils/randomEmoji';
 
 export type User = {
   id: string;
   name: string;
   email: string;
+  profilePicture: string;
 };
 
 // Create an instance of the authenticator, pass a generic with what
@@ -17,7 +19,7 @@ export type User = {
 export const authenticator = new Authenticator<User>(sessionStorage);
 
 authenticator.use(
-  new FormStrategy(async ({form, context: {formData}}) => {
+  new FormStrategy(async ({form}) => {
     // Here you can use `form` to access and input values from the form.
     // and also use `context` to access more things from the server
 
@@ -33,9 +35,10 @@ authenticator.use(
     }
 
     const anonUser = {
-      id: generateId(),
+      id: `anon-${generateId()}`,
       name: generateId(null, {delimiter: ' '}),
       email: 'fake@example.com',
+      profilePicture: randomEmoji(),
     } satisfies User;
 
     // You can validate the inputs however you want

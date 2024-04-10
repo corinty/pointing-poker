@@ -4,7 +4,7 @@ import {
   json,
   redirect,
 } from '@remix-run/node';
-import {useLoaderData, useParams} from '@remix-run/react';
+import {useLoaderData, useLocation, useParams} from '@remix-run/react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import styles from '~/styles/room.css';
@@ -17,6 +17,7 @@ import {loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
 import {SelectUser} from '~/db/schema/users';
 import {authenticator} from '~/services/auth.server';
+import {usePresenceUsers} from '~/hooks/usePresenceUsers';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -27,7 +28,6 @@ export const loader = async (args: LoaderFunctionArgs) => {
   if (!params.roomId) throw new Error('missing room ID');
 
   if (!(await authenticator.isAuthenticated(args.request))) {
-    console.log(args.request.url);
     const url = new URL(args.request.url);
     return redirect(`/auth/login?redirectTo=${url.pathname}`);
   }
@@ -38,6 +38,10 @@ export const loader = async (args: LoaderFunctionArgs) => {
 export default function Room() {
   const {roomId} = useParams();
   if (!roomId) throw Error('missing param');
+  const location = useLocation();
+
+  const users = usePresenceUsers(location.pathname);
+
   const {width, height} = useWindowSize();
 
   const [shouldShowConfetti, setConfetti] = useDisclosure(false, {
@@ -67,8 +71,15 @@ export default function Room() {
     // points: voteValue.toString(),
     // });
   };
-  return user ? <h1>TODO this again...{user?.name}</h1> : <h1>no user</h1>;
-
+  return Object.values(users).map((user) => {
+    return (
+      <p key={user.id}>
+        Name: {user.name}: {user.profilePicture} | Where: `{user.lastSeenWhere}|
+        When:
+        {user.lastSeenWhen}
+      </p>
+    );
+  });
   return (
     <div className="flex flex-col gap-2 ">
       <div className="flex items-center gap-4 h-24">

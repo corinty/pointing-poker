@@ -108,14 +108,22 @@ export default function App() {
                         'text-white': loginRequired,
                       })}
                     >
-                      Welcome {user.name}
+                      Welcome {user.name}:{' '}
+                      {user.id.includes('anon') && user.profilePicture}
                     </button>
                   ) : (
                     <Form action="/auth/login" method="post">
-                      <input type="checkbox" hidden checked name="guest" />
+                      <input
+                        type="checkbox"
+                        hidden
+                        checked
+                        name="guest"
+                        readOnly
+                      />
                       <input
                         type="input"
                         name="redirectTo"
+                        readOnly
                         value={
                           searchParams.get('redirectTo') || location.pathname
                         }
