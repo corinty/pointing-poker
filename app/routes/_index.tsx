@@ -1,4 +1,8 @@
-import type {ActionFunctionArgs, LinksFunction} from '@remix-run/node';
+import type {
+  ActionFunctionArgs,
+  LinksFunction,
+  LoaderFunctionArgs,
+} from '@remix-run/node';
 import {
   redirect,
   Link,
@@ -9,11 +13,14 @@ import {
 import styles from '~/styles/home.css';
 import {useState} from 'react';
 import {generateRoomCode} from '~/utils/generateRoomCode';
+import {authenticator} from '~/services/auth.server';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
-export function loader() {
-  return json(generateRoomCode());
+export async function loader({request}: LoaderFunctionArgs) {
+  const user = await authenticator.isAuthenticated(request);
+
+  return json({newRoomCode: generateRoomCode(), user});
 }
 
 export const action = async ({request}: ActionFunctionArgs) => {
@@ -27,17 +34,18 @@ export const action = async ({request}: ActionFunctionArgs) => {
 export default function Index() {
   const [joinRoomValue, setJoinRoomValue] = useState('');
   const navigate = useNavigate();
-  const roomCode = useLoaderData<typeof loader>();
+  const {newRoomCode, user} = useLoaderData<typeof loader>();
   const roomUrl = `/room/${joinRoomValue}`;
 
   return (
     <div>
       <h1>♣️ Welcome to Pointing Poker</h1>
+      {user ? <p>{user.username}</p> : <p>Hi Guest</p>}
       <section>
         <div className="room-selection">
           <div></div>
           <Link
-            to={`/room/${roomCode}`}
+            to={`/room/${newRoomCode}`}
             className="button text-center"
             prefetch="intent"
           >
