@@ -7,8 +7,9 @@ import {trpc} from '~/utils/trpc';
 import {cssBundleHref} from '@remix-run/css-bundle';
 import '@mantine/core/styles.css';
 import '@mantine/nprogress/styles.css';
-import type {LinksFunction} from '@remix-run/node';
+import type {LinksFunction, LoaderFunctionArgs} from '@remix-run/node';
 import {
+  Form,
   Link,
   Links,
   LiveReload,
@@ -18,6 +19,8 @@ import {
   ScrollRestoration,
   json,
   useLoaderData,
+  useLocation,
+  useSearchParams,
 } from '@remix-run/react';
 import {useState} from 'react';
 import simpledotcss from 'simpledotcss/simple.css';
@@ -28,10 +31,14 @@ import classNames from 'classnames';
 import {ColorSchemeScript, MantineProvider} from '@mantine/core';
 import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator';
 import {getBrowserEnv} from './utils/getBrowserEnv';
+import {authenticator} from './services/auth.server';
 
-export async function loader() {
+export async function loader({request}: LoaderFunctionArgs) {
+  const user = await authenticator.isAuthenticated(request);
+
   return json({
     ENV: getBrowserEnv(),
+    user,
   });
 }
 
@@ -54,7 +61,9 @@ export const links: LinksFunction = () => [
 export default function App() {
   const [queryClient] = useState(() => new QueryClient());
   const data = useLoaderData<typeof loader>();
-  const {ENV} = data;
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const {ENV, user} = data;
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
@@ -90,20 +99,39 @@ export default function App() {
                   <Link to="/">Home</Link>
                 </div>
                 <div className="sign-in">
-                  {true && (
+                  {user ? (
                     <button
-                      type="button"
+                      type="submit"
                       className={classNames('animate__animated', {
                         animate__wobble: loginRequired,
                         'bg-purple-700': loginRequired,
                         'text-white': loginRequired,
                       })}
-                      onClick={() => {
-                        // TODO:: Signin
-                      }}
                     >
-                      Sign in
+                      Welcome {user.name}
                     </button>
+                  ) : (
+                    <Form action="/auth/login" method="post">
+                      <input type="checkbox" hidden checked name="guest" />
+                      <input
+                        type="input"
+                        name="redirectTo"
+                        value={
+                          searchParams.get('redirectTo') || location.pathname
+                        }
+                        hidden
+                      />
+                      <button
+                        type="submit"
+                        className={classNames('animate__animated', {
+                          animate__wobble: loginRequired,
+                          'bg-purple-700': loginRequired,
+                          'text-white': loginRequired,
+                        })}
+                      >
+                        Guest
+                      </button>
+                    </Form>
                   )}
                 </div>
               </nav>
