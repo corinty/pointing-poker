@@ -1,26 +1,21 @@
-import type {
-  ActionFunctionArgs,
-  LinksFunction,
-  LoaderFunctionArgs,
-} from '@remix-run/node';
+import type {ActionFunctionArgs, LinksFunction} from '@remix-run/node';
 import {
   redirect,
   Link,
   useNavigate,
   json,
   useLoaderData,
+  useLocation,
 } from '@remix-run/react';
 import styles from '~/styles/home.css';
 import {useState} from 'react';
 import {generateRoomCode} from '~/utils/generateRoomCode';
-import {authenticator} from '~/services/auth.server';
+import {usePresenceUsers} from '~/hooks/usePresenceUsers';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
-export async function loader({request}: LoaderFunctionArgs) {
-  const user = await authenticator.isAuthenticated(request);
-
-  return json({newRoomCode: generateRoomCode(), user});
+export async function loader() {
+  return json({newRoomCode: generateRoomCode()});
 }
 
 export const action = async ({request}: ActionFunctionArgs) => {
@@ -34,13 +29,12 @@ export const action = async ({request}: ActionFunctionArgs) => {
 export default function Index() {
   const [joinRoomValue, setJoinRoomValue] = useState('');
   const navigate = useNavigate();
-  const {newRoomCode, user} = useLoaderData<typeof loader>();
+  const {newRoomCode} = useLoaderData<typeof loader>();
   const roomUrl = `/room/${joinRoomValue}`;
 
   return (
     <div>
       <h1>♣️ Welcome to Pointing Poker</h1>
-      {user ? <p>{user.username}</p> : <p>Hi Guest</p>}
       <section>
         <div className="room-selection">
           <div></div>
