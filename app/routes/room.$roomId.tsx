@@ -4,7 +4,7 @@ import {
   json,
   redirect,
 } from '@remix-run/node';
-import {useLoaderData, useLocation, useParams} from '@remix-run/react';
+import {Outlet, useLoaderData, useLocation, useParams} from '@remix-run/react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import styles from '~/styles/room.css';
@@ -15,7 +15,6 @@ import {trpc} from '~/utils/trpc';
 import {useDisclosure} from '@mantine/hooks';
 import {loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
-import {SelectUser} from '~/db/schema/users';
 import {authenticator} from '~/services/auth.server';
 import {usePresenceUsers} from '~/hooks/usePresenceUsers';
 
@@ -32,7 +31,10 @@ export const loader = async (args: LoaderFunctionArgs) => {
     return redirect(`/auth/login?redirectTo=${url.pathname}`);
   }
   const trpc = loaderTrpc(args);
-  return json(await trpc.rooms.get(params.roomId!));
+
+  const room = await trpc.rooms.get(params.roomId!);
+
+  return json(room);
 };
 
 export default function Room() {
@@ -41,6 +43,7 @@ export default function Room() {
   const location = useLocation();
 
   const users = usePresenceUsers(location.pathname);
+  const currentUser = useCurrentUser();
 
   const {width, height} = useWindowSize();
 
@@ -54,32 +57,23 @@ export default function Room() {
   const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
   const submitVoteMutation = trpc.story.submitVote.useMutation();
 
-  const initialData = useLoaderData<typeof loader>();
-  const user = useCurrentUser();
-
-  const {data} = trpc.rooms.get.useQuery(roomId, {initialData});
+  const data = useLoaderData<typeof loader>();
 
   const {averageVote, hasConsensus, submittedVotes} = useVotes(roomId);
 
+  if (!currentUser) return null;
+
   if (!data.activeStory) throw new Error('missing active story');
+
   const {description, id} = data.activeStory;
 
   const submitVote = (voteValue: number) => {
-    // submitVoteMutation.mutate({
-    // storyId: id,
-    // userId: user.id!,
-    // points: voteValue.toString(),
-    // });
+    submitVoteMutation.mutate({
+      storyId: id,
+      userId: currentUser.id,
+      points: voteValue.toString(),
+    });
   };
-  return Object.values(users).map((user) => {
-    return (
-      <p key={user.id}>
-        Name: {user.name}: {user.profilePicture} | Where: `{user.lastSeenWhere}|
-        When:
-        {user.lastSeenWhen}
-      </p>
-    );
-  });
   return (
     <div className="flex flex-col gap-2 ">
       <div className="flex items-center gap-4 h-24">
@@ -88,6 +82,7 @@ export default function Room() {
         </div>
         <CopyCurrentUrlToClipboard />
       </div>
+      <Outlet />
       <div>
         <div className="flex gap-2">
           <textarea
@@ -183,7 +178,7 @@ export default function Room() {
             <p className="text-2xl font-bold w-1/2">Person</p>
           </div>
           <div className="flex flex-col gap-4">
-            {Object.values(presentUsers)?.map((user) => {
+            {Object.values(users)?.map((user) => {
               const playerVoted = user.vote;
               return (
                 <div className={'grid grid-cols-2 gap-2'} key={user.name}>

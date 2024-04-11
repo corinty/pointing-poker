@@ -51,7 +51,8 @@ export function usePresenceUsers(route: string, fetchInterval: number = 1000) {
       interval.stop();
       leaveRoom();
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, route]);
   useBeforeUnload(() => {
     interval.stop();
     leaveRoom();
