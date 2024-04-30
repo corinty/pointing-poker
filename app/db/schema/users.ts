@@ -17,6 +17,10 @@ export const users = sqliteTable(
     name: text('name'),
     email: text('email'),
     profilePicture: text('profile_picture'),
+    lastSeenWhere: text('last_seen_where'),
+    lastSeenAt: integer('last_seen_at', {mode: 'timestamp_ms'}).$default(
+      () => new Date(),
+    ),
   },
   (table) => {
     return {

@@ -3,7 +3,6 @@ import {authenticator} from '~/services/auth.server';
 
 export async function action({request}: ActionFunctionArgs) {
   const formData = await request.formData();
-  console.log(formData.get('redirectTo'), formData.get('guest'));
 
   return await authenticator.authenticate('form', request, {
     successRedirect: (formData.get('redirectTo') as string) || '/',

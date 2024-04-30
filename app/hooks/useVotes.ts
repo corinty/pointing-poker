@@ -1,34 +1,17 @@
-import {useMemo, useState} from 'react';
-import {useCurrentUser} from './useCurrentUser';
-import {humanId} from 'human-id';
-
-// TODO:: Move this to env
-const anonMode = true;
-
+import {useState} from 'react';
+interface LocalVotes {
+  [userId: string]: string;
+}
 export function useVotes(roomId: string) {
-  const anonId = useMemo(
-    () => humanId({separator: ' ', adjectiveCount: 0}),
-    [],
-  );
-
-  const user = useCurrentUser();
-
   const [votes, setVotes] = useState<LocalVotes>({});
 
-  const voteEntires = Object.values(votes).map((entry) => entry.vote);
+  const voteEntires = Object.entries(votes);
 
-  const everyoneVoted = voteEntires.every((vote) => vote !== null);
+  const everyoneVoted = false;
 
-  const submittedVotes = voteEntires.filter(
-    (vote): vote is number => vote !== null,
-  );
+  const submittedVotes = {};
 
-  const averageVote = (() => {
-    if (submittedVotes.length == 0) return 0;
-
-    return average(submittedVotes);
-  })();
-
+  const averageVote = average([3, 2, 19]);
   const hasConsensus = voteEntires.map((entry) => entry === voteEntires[0]);
 
   return {

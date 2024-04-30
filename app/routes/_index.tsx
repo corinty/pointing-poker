@@ -5,12 +5,10 @@ import {
   useNavigate,
   json,
   useLoaderData,
-  useLocation,
 } from '@remix-run/react';
 import styles from '~/styles/home.css';
 import {useState} from 'react';
 import {generateRoomCode} from '~/utils/generateRoomCode';
-import {usePresenceUsers} from '~/hooks/usePresenceUsers';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 

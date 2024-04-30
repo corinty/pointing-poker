@@ -20,10 +20,8 @@ export type User = {
 
 export async function requireAuthenticatedUser(request: Request) {
   const user = await authenticator.isAuthenticated(request);
-  console.log('auth user check', user);
 
   if (!user) {
-    console.log('redirecting');
     const url = new URL(request.url);
     throw redirect(`/auth/login?redirectTo=${url.pathname}`);
   }
@@ -50,6 +48,7 @@ authenticator.use(
       throw new Error('Guest form element missing');
     }
     const anonNameSeed = crypto.randomUUID();
+    console.log('anonNameSeed', anonNameSeed);
 
     const anonUser = {
       id: `anon-${generateId(anonNameSeed, {
@@ -57,18 +56,13 @@ authenticator.use(
         caseStyle: 'lowercase',
       })}`,
       name: generateId(anonNameSeed, {delimiter: ' '}),
-      email: 'fake@example.com',
+      email: `${anonNameSeed}+fake@example.com`,
       profilePicture: randomEmoji(),
     } satisfies User;
-    console.log(anonUser);
 
     try {
-      const user = await db
-        .insert(users)
-        .values(anonUser)
-        .onConflictDoNothing()
-        .returning();
-      console.log(user);
+      await db.insert(users).values(anonUser);
+      return anonUser;
     } catch (error) {
       console.error(error);
       throw error;
@@ -77,6 +71,5 @@ authenticator.use(
     // You can validate the inputs however you want
 
     // And return the user as the Authenticator expects it
-    return anonUser;
   }),
 );

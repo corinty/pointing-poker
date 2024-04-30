@@ -1,19 +1,16 @@
 import {useInterval, useWindowEvent} from '@mantine/hooks';
 import {useEffect} from 'react';
 import {useCurrentUser} from './useCurrentUser';
-import {useBeforeUnload} from '@remix-run/react';
+import {useBeforeUnload, useLocation} from '@remix-run/react';
 import {Intent, UserPresence} from '../routes/user.presence';
 import {getBrowserEnv} from '~/utils/getBrowserEnv';
 import {useEventSource} from 'remix-utils/sse/react';
+import {usersRouter} from '~/trpc/routers/users.router';
+import {AppRouter, RouterOutput} from '~/trpc/routers/_app';
 
 const presenceURL = '/user/presence';
 
-type Presence = {
-  [key: string]: typeof UserPresence extends Map<string, infer I> ? I : never;
-};
-
-function leaveRoom(doIt: boolean = false) {
-  if (doIt) alert('stop the presses');
+function leaveRoom() {
   const body = new FormData();
   body.append('route', '/bye-bye');
   body.append('intent', Intent.Enum.Leave);
@@ -35,15 +32,18 @@ function joinRoom(route: string) {
   });
 }
 
-export function usePresenceUsers(route: string, fetchInterval: number = 1000) {
-  const user = useCurrentUser();
+type PresentUser = RouterOutput['users']['usersAtRoute'][0];
+
+export function usePresentUsers(): Map<PresentUser['id'], PresentUser> {
+  const location = useLocation();
+  const route = location.pathname;
 
   const interval = useInterval(() => {
-    // joinRoom(route);
-  }, 15000);
+    joinRoom(route);
+  }, 300000);
 
   useEffect(() => {
-    if (!interval.active && user) {
+    if (!interval.active) {
       joinRoom(route);
       interval.start();
     }
@@ -51,8 +51,8 @@ export function usePresenceUsers(route: string, fetchInterval: number = 1000) {
       interval.stop();
       leaveRoom();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, route]);
+  }, []);
+
   useBeforeUnload(() => {
     interval.stop();
     leaveRoom();
@@ -63,16 +63,14 @@ export function usePresenceUsers(route: string, fetchInterval: number = 1000) {
   const streamUrl = new URL(presenceURL, getBrowserEnv().SITE_URL);
 
   streamUrl.searchParams.set('route', encodeURIComponent(route));
-  streamUrl.searchParams.set(
-    'fetchInterval',
-    fetchInterval ? fetchInterval.toString() : '1000',
-  );
 
   const userStream = useEventSource(streamUrl.href, {
     event: 'users',
   });
 
-  if (!userStream) return {} satisfies Presence;
+  if (!userStream) return new Map();
 
-  return Object.fromEntries(JSON.parse(userStream)) satisfies Presence;
+  const usersArray = JSON.parse(userStream) as Array<PresentUser>;
+
+  return new Map(usersArray.map((user) => [user.id, user]));
 }

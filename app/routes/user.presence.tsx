@@ -1,21 +1,21 @@
-import {ActionFunctionArgs, LoaderFunctionArgs} from '@remix-run/node';
+import {ActionFunctionArgs, LoaderFunctionArgs, json} from '@remix-run/node';
 import {eventStream} from 'remix-utils/sse/server';
 import {User, authenticator} from '~/services/auth.server';
 
 import {remember} from '@epic-web/remember';
 import {zfd} from 'zod-form-data';
 import {z} from 'zod';
+import {loaderTrpc} from '~/trpc/routers/_app';
+import {emitter} from '~/services/emitter.server';
+import {createEventStream} from '~/services/create-event-stream';
+import {protectedProcedure} from '~/trpc/trpc.server';
 
 export const Intent = z.enum(['Join', 'Leave']);
 export type IntentEnum = z.infer<typeof Intent>;
 
 export const UserPresence = remember(
   'presenceMap',
-  () =>
-    new Map<
-      string,
-      User & {lastSeenWhere: string; lastSeenWhen: string; intent?: IntentEnum}
-    >(),
+  () => new Map<string, User>(),
 );
 
 const schema = zfd.formData({
@@ -23,58 +23,57 @@ const schema = zfd.formData({
   intent: zfd.text(Intent),
 });
 
-export async function action({request}: ActionFunctionArgs) {
+export async function action(args: ActionFunctionArgs) {
+  const {request} = args;
   const user = await authenticator.isAuthenticated(request);
   if (!user) return null;
+
+  const trpc = await loaderTrpc(request);
 
   const {route, intent} = schema.parse(await request.formData());
 
   if (intent === 'Join') {
+    const usersAtRoute = await trpc.users.updatePresence(route);
     UserPresence.set(user.id, {
       ...user,
       lastSeenWhere: route,
       lastSeenWhen: new Date().toISOString(),
-      intent: 'Leave',
+      intent: 'Join',
     });
+
+    return json({users: usersAtRoute});
   }
 
   if (intent === 'Leave') {
     UserPresence.delete(user.id);
+    await trpc.users.updatePresence(null);
+    return json({users: []});
   }
-
-  return new Response(null, {
-    status: 200,
-  });
 }
 
 export async function loader({request}: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const route = url.searchParams.get('route');
-  const fetchInterval = url.searchParams.get('fetchInterval') || '1000';
-  const getPresentUsers = () =>
-    JSON.stringify(
-      Array.from(UserPresence.entries()).filter(([_, user]) => {
-        if (route) {
-          return user.lastSeenWhere === decodeURIComponent(route);
-        }
-        return true;
-      }),
-    );
-  return eventStream(request.signal, function setup(send) {
-    const emitEvent = () =>
+  const rawRoute = url.searchParams.get('route');
+  const route = rawRoute ? decodeURIComponent(rawRoute) : null;
+  if (!route) throw new Error('missing route search param');
+  const trpc = await loaderTrpc(request);
+
+  return eventStream(request.signal, (send) => {
+    const handle = async (joinedRoute: string | null) => {
+      if (joinedRoute !== decodeURIComponent(route)) return;
+      const users = await trpc.users.usersAtRoute(route);
+
       send({
         event: 'users',
-        data: getPresentUsers(),
+        data: JSON.stringify(users),
       });
+    };
 
-    const interval = setInterval(() => {
-      emitEvent();
-    }, Number(fetchInterval));
-
-    emitEvent();
+    emitter.addListener('userJoin', handle);
+    handle(route);
 
     return () => {
-      clearInterval(interval);
+      emitter.removeListener('userJoin', handle);
     };
   });
 }
