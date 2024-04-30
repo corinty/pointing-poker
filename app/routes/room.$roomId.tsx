@@ -1,22 +1,25 @@
 import {
+  ActionFunctionArgs,
   LinksFunction,
   LoaderFunctionArgs,
   json,
-  redirect,
 } from '@remix-run/node';
-import {Outlet, useLoaderData, useLocation, useParams} from '@remix-run/react';
+import {namedAction} from 'remix-utils/named-action';
+import {Outlet, useFetcher, useLocation, useParams} from '@remix-run/react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
-import {useCurrentUser} from '~/hooks/useCurrentUser';
 import classNames from 'classnames';
 import {trpc} from '~/utils/trpc';
 import {useDisclosure} from '@mantine/hooks';
 import {loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
-import {authenticator} from '~/services/auth.server';
+import {authenticator, requireAuthenticatedUser} from '~/services/auth.server';
 import {usePresenceUsers} from '~/hooks/usePresenceUsers';
+import {useLiveLoader} from '~/hooks/useLiveLoaderData';
+import {insertVoteSchema} from '~/db/schema/votes';
+import {withZod} from '@remix-validated-form/with-zod';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -26,16 +29,15 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const {params} = args;
   if (!params.roomId) throw new Error('missing room ID');
 
-  if (!(await authenticator.isAuthenticated(args.request))) {
-    const url = new URL(args.request.url);
-    return redirect(`/auth/login?redirectTo=${url.pathname}`);
-  }
+  const user = await authenticator.isAuthenticated(args.request);
   const trpc = loaderTrpc(args);
 
   const room = await trpc.rooms.get(params.roomId!);
 
-  return json(room);
+  return json({room, user});
 };
+
+const voteValidator = withZod(insertVoteSchema);
 
 export default function Room() {
   const {roomId} = useParams();
@@ -43,7 +45,8 @@ export default function Room() {
   const location = useLocation();
 
   const users = usePresenceUsers(location.pathname);
-  const currentUser = useCurrentUser();
+
+  const fetcher = useFetcher();
 
   const {width, height} = useWindowSize();
 
@@ -55,17 +58,23 @@ export default function Room() {
   const [displayVotes, displayVoteHandlers] = useDisclosure(false);
 
   const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
-  const submitVoteMutation = trpc.story.submitVote.useMutation();
+  const pingRoom = trpc.story.pingRoom.useMutation();
 
-  const data = useLoaderData<typeof loader>();
+  const {room, user: currentUser} = useLiveLoader<typeof loader>();
 
   const {averageVote, hasConsensus, submittedVotes} = useVotes(roomId);
 
-  if (!currentUser) return null;
+  if (!room.activeStory) throw new Error('missing active story');
 
-  if (!data.activeStory) throw new Error('missing active story');
+  const {description, id, votes} = room.activeStory;
 
-  const {description, id} = data.activeStory;
+  const currentUserVote = (() => {
+    const userEntry = votes.find((vote) => vote.userId === currentUser.id);
+
+    if (userEntry?.points) return parseInt(userEntry.points);
+
+    return null;
+  })();
 
   const submitVote = (voteValue: number) => {
     submitVoteMutation.mutate({
@@ -74,6 +83,7 @@ export default function Room() {
       points: voteValue.toString(),
     });
   };
+
   return (
     <div className="flex flex-col gap-2 ">
       <div className="flex items-center gap-4 h-24">
@@ -96,6 +106,7 @@ export default function Room() {
             style={{height: '100%', margin: '0'}}
             onClick={() => {
               // TODO Next Story fn
+              pingRoom.mutate();
             }}
           >
             Next Story
@@ -158,16 +169,33 @@ export default function Room() {
           <h3>Vote</h3>
           <div className="points">
             {pointValues.map((value) => (
-              <button
-                key={value}
-                className={classNames({
-                  // TODO:: Fix this
-                  // 'bg-green-500': value == currentUserVote?.value,
-                })}
-                onClick={() => submitVote(value)}
-              >
-                {value}
-              </button>
+              <fetcher.Form key={value} method="post">
+                <input
+                  type="hidden"
+                  name="intent"
+                  value={'submitVote'}
+                  readOnly
+                />
+                <input type="hidden" name="points" value={value} readOnly />
+                <input
+                  type="hidden"
+                  name="userId"
+                  value={currentUser.id}
+                  readOnly
+                />
+                <input type="hidden" name="storyId" value={id} readOnly />
+                <button
+                  type="submit"
+                  disabled={fetcher.state !== 'idle'}
+                  className={classNames({
+                    // TODO:: Fix this
+                    'bg-green-500':
+                      value == Number(fetcher?.formData?.get('vote')),
+                  })}
+                >
+                  {value}
+                </button>
+              </fetcher.Form>
             ))}
           </div>
         </div>
@@ -179,7 +207,7 @@ export default function Room() {
           </div>
           <div className="flex flex-col gap-4">
             {Object.values(users)?.map((user) => {
-              const playerVoted = user.vote;
+              const playerVoted = currentUserVote;
               return (
                 <div className={'grid grid-cols-2 gap-2'} key={user.name}>
                   {displayVotes ? (

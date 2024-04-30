@@ -1,10 +1,14 @@
 import {eventStream} from 'remix-utils/sse/server';
 import {MessageEvents, emitter} from './emitter.server';
 
+type Events = keyof MessageEvents;
+
 export function createEventStream(
   request: Request,
-  eventName: keyof MessageEvents,
+  eventName: Events | Events[],
 ) {
+  const events = Array.isArray(eventName) ? eventName : [eventName];
+
   return eventStream(request.signal, (send) => {
     const handle = () => {
       send({
@@ -12,10 +16,14 @@ export function createEventStream(
       });
     };
 
-    emitter.addListener(eventName, handle);
+    events.forEach((event) => {
+      emitter.addListener(event, handle);
+    });
 
     return () => {
-      emitter.removeListener(eventName, handle);
+      events.forEach((event) => {
+        emitter.removeListener(event, handle);
+      });
     };
   });
 }

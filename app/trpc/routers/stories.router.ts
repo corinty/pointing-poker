@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {publicProcedure} from '../trpc.server';
 import {db} from '~/db/drizzle.server';
-import {votes} from '~/db/schema/votes';
+import {insertVoteSchema, votes} from '~/db/schema/votes';
 import {eq} from 'drizzle-orm';
 import {stories, updateDescriptionSchema} from '~/db/schema/stories';
 import {emitter} from '~/services/emitter.server';
@@ -22,5 +22,30 @@ export const storiesRouter = {
       emitter.emit('roomUpdate');
 
       return story;
+    }),
+  pingRoom: publicProcedure.mutation(() => {
+    emitter.emit('roomUpdate');
+  }),
+  submitVote: publicProcedure
+    .input(insertVoteSchema)
+    .mutation(async ({input: {storyId, points, userId}}) => {
+      await db
+        .insert(votes)
+        .values({
+          storyId,
+          userId,
+        })
+        .onConflictDoUpdate({
+          set: {
+            points,
+          },
+          target: [votes.storyId, votes.userId],
+        });
+
+      return db.query.votes.findMany({
+        where: (votes, {eq}) => eq(votes.storyId, storyId),
+      });
+
+      emitter.emit('roomUpdate');
     }),
 };

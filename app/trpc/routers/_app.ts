@@ -1,7 +1,7 @@
 import {t} from '~/trpc/trpc.server';
-import {roomsRouter} from './roomsRouter';
+import {roomsRouter} from './rooms.router';
 import {ActionFunctionArgs, LoaderFunctionArgs} from '@remix-run/node';
-import {storiesRouter} from './storiesRouter';
+import {storiesRouter} from './stories.router';
 
 export const appRouter = t.router({
   rooms: roomsRouter,

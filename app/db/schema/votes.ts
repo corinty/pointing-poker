@@ -23,7 +23,7 @@ export const votes = sqliteTable(
       mode: 'timestamp_ms',
     })
       .notNull()
-      .$default(() => new Date()),
+      .$onUpdate(() => new Date()),
     storyId: integer('story_id')
       .notNull()
       .references(() => stories.id, {onDelete: 'cascade', onUpdate: 'cascade'}),
@@ -48,8 +48,10 @@ export const votesRelations = relations(votes, ({one}) => ({
   }),
 }));
 
-export const insertVoteSchema = createInsertSchema(votes).pick({
-  points: true,
-  storyId: true,
-  userId: true,
-});
+export const insertVoteSchema = createInsertSchema(votes)
+  .pick({
+    points: true,
+    storyId: true,
+    userId: true,
+  })
+  .required({points: true});

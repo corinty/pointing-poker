@@ -1,4 +1,4 @@
-import {createRoom} from '~/db/rooms.server';
+import {createRoom} from '~/db/rooms.repository.server';
 
 const main = async () => {
   const roomIds = [

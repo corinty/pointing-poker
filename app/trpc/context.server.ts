@@ -1,7 +1,11 @@
 import {FetchCreateContextFnOptions} from '@trpc/server/adapters/fetch';
+import {authenticator} from '~/services/auth.server';
 
-export function createContext({req, resHeaders}: FetchCreateContextFnOptions) {
-  const user = {name: req.headers.get('username') ?? 'anonymous'};
+export async function createContext({
+  req,
+  resHeaders,
+}: FetchCreateContextFnOptions) {
+  const user = await authenticator.isAuthenticated(req);
   return {req, resHeaders, user};
 }
 

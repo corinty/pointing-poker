@@ -16,6 +16,7 @@ export const users = sqliteTable(
     ),
     name: text('name'),
     email: text('email'),
+    profilePicture: text('profile_picture'),
   },
   (table) => {
     return {
