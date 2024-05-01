@@ -7,13 +7,12 @@ import {useWindowSize} from '~/utils/useWindowSize';
 import classNames from 'classnames';
 import {trpc} from '~/utils/trpc';
 import {useDisclosure} from '@mantine/hooks';
-import {loaderTrpc} from '~/trpc/routers/_app';
+import {RouterOutput, loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
 import {authenticator} from '~/services/auth.server';
-import {usePresentUsers} from '~/hooks/usePresentUsers';
+import {PresentUser, usePresentUsers} from '~/hooks/usePresentUsers';
 import {useLiveLoader} from '~/hooks/useLiveLoaderData';
 import {VoteFields} from './room.$roomId.vote';
-import {useMemo} from 'react';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -27,8 +26,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const trpc = await loaderTrpc(args.request);
 
   const room = await trpc.rooms.get(params.roomId!);
-
-  return json({room, user});
+  return json({room, user, story: room?.activeStory});
 };
 
 export default function Room() {
@@ -50,19 +48,19 @@ export default function Room() {
 
   const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
 
-  const {room, user: currentUser} = useLiveLoader<typeof loader>();
+  const {room, user: currentUser, story} = useLiveLoader<typeof loader>();
 
   const {averageVote, hasConsensus} = useVotes(roomId);
 
-  if (!room.activeStory) throw new Error('missing active story');
+  if (!story) throw new Error('missing active story');
 
   if (!currentUser) return <p>oh no.....you must be logged in</p>;
 
-  const {description, id, votes} = room.activeStory;
+  const {description, id, votes} = story;
 
   const currentUserVote = fetcher.formData
     ? Number(fetcher.formData.get(VoteFields.Points))
-    : Number(votes.find((vote) => vote.userId === currentUser.id)?.points);
+    : Number(votes.find((vote) => vote.user.id === currentUser.id)?.points);
 
   return (
     <div className="flex flex-col gap-2 ">
@@ -184,10 +182,12 @@ export default function Room() {
               <p className="text-2xl font-bold w-1/2">Person</p>
             </div>
             <div className="flex flex-col gap-4">
-              {Object.values(users)?.map((user) => {
+              {Object.values(users).map((user) => {
+                const {name, id, } =
+                  user as RouterOutput['users']['usersAtRoute']['0'];
                 const playerVoted = currentUserVote;
                 return (
-                  <div className={'grid grid-cols-2 gap-2'} key={user.name}>
+                  <div className={'grid grid-cols-2 gap-2'} key={id}>
                     {displayVotes ? (
                       <div className="text-9xl">{user.vote ?? '?'}</div>
                     ) : (

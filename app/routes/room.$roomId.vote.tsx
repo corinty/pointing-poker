@@ -25,14 +25,14 @@ export async function action(args: ActionFunctionArgs) {
         throw new Error('missing required paramaters');
       console.log(user.id, 'poitns', points, 'storyId', storyId);
 
-      const submission = await trpc.story.submitVote({
+      const votes = await trpc.story.submitVote({
         userId: user.id,
         roomId,
         points,
         storyId,
       });
 
-      return json({submission});
+      return json({votes});
     }
   }
 }

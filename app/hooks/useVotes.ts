@@ -1,8 +1,9 @@
 import {useState} from 'react';
+import {RouterOutput} from '~/trpc/routers/_app';
 interface LocalVotes {
   [userId: string]: string;
 }
-export function useVotes(roomId: string) {
+export function useVotes(serverVotes) {
   const [votes, setVotes] = useState<LocalVotes>({});
 
   const voteEntires = Object.entries(votes);

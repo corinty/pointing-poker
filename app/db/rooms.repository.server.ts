@@ -28,12 +28,14 @@ export const getRoom = async (roomId: string) => {
           votes: {
             columns: {
               points: true,
-              userId: true,
+              updatedAt: true,
             },
             with: {
               user: {
                 columns: {
+                  id: true,
                   name: true,
+                  email: true,
                 },
               },
             },

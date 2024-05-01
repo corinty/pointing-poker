@@ -5,8 +5,10 @@ import {createRoom, getRoom} from '~/db/rooms.repository.server';
 export const roomsRouter = {
   get: publicProcedure.input(z.string()).query(async (opts) => {
     const {input} = opts;
-    const room = await getRoom(input);
-    if (room) return room;
-    return createRoom(input);
+    let room = await getRoom(input);
+
+    if (!room) room = await createRoom(input);
+
+    return room;
   }),
 };

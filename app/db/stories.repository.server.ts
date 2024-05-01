@@ -4,6 +4,13 @@ import {Story} from './schema/stories';
 export async function getStory(storyId: Story['id']) {
   return db.query.stories.findFirst({
     where: (stories, {eq}) => eq(stories.id, storyId),
-    with: {votes: true},
+    with: {
+      votes: {
+        columns: {
+          createdAt: false,
+          storyId: false,
+        },
+      },
+    },
   });
 }
