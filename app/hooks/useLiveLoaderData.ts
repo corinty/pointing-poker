@@ -10,7 +10,6 @@ export function useLiveLoader<T>(streamPath?: string) {
 
   useEffect(() => {
     if (!data) return;
-    console.log('fetch it all--------------------');
     revalidate();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- "we know better" — Moishi
   }, [data]);

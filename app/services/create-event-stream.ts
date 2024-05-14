@@ -11,7 +11,6 @@ export function createEventStream(
 
   return eventStream(request.signal, (send) => {
     const handle = () => {
-      console.log('request', request.url);
       send({
         data: String(Date.now()),
       });

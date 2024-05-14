@@ -23,7 +23,6 @@ export async function action(args: ActionFunctionArgs) {
       const storyId = Number(formData.get(VoteFields.StoryId));
       if (!roomId || !storyId || !points)
         throw new Error('missing required paramaters');
-      console.log(user.id, 'poitns', points, 'storyId', storyId);
 
       const votes = await trpc.story.submitVote({
         userId: user.id,

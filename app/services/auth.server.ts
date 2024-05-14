@@ -48,7 +48,6 @@ authenticator.use(
       throw new Error('Guest form element missing');
     }
     const anonNameSeed = crypto.randomUUID();
-    console.log('anonNameSeed', anonNameSeed);
 
     const anonUser = {
       id: `anon-${generateId(anonNameSeed, {

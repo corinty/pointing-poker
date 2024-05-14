@@ -13,6 +13,7 @@ export const usersRouter = {
         input,
         ctx: {user},
       } = opts;
+      if (!user) return;
 
       const updatedUser = await db
         .update(users)

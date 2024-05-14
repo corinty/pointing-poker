@@ -10,7 +10,7 @@ import {useDisclosure} from '@mantine/hooks';
 import {RouterOutput, loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
 import {authenticator} from '~/services/auth.server';
-import {PresentUser, usePresentUsers} from '~/hooks/usePresentUsers';
+import {usePresentUsers} from '~/hooks/usePresentUsers';
 import {useLiveLoader} from '~/hooks/useLiveLoaderData';
 import {VoteFields} from './room.$roomId.vote';
 
@@ -183,7 +183,7 @@ export default function Room() {
             </div>
             <div className="flex flex-col gap-4">
               {Object.values(users).map((user) => {
-                const {name, id, } =
+                const {name, id} =
                   user as RouterOutput['users']['usersAtRoute']['0'];
                 const playerVoted = currentUserVote;
                 return (

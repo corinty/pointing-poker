@@ -5,7 +5,6 @@ import {insertVoteSchema, votes} from '~/db/schema/votes';
 import {eq} from 'drizzle-orm';
 import {stories, updateDescriptionSchema} from '~/db/schema/stories';
 import {emitter} from '~/services/emitter.server';
-import {rooms} from '~/db/schema/rooms';
 
 export const storiesRouter = {
   clearAllVotes: publicProcedure.input(z.number()).mutation(async ({input}) => {
@@ -26,13 +25,14 @@ export const storiesRouter = {
     }),
   submitVote: publicProcedure
     .input(insertVoteSchema.merge(z.object({roomId: z.string()})))
-    .mutation(async ({input: {storyId, points, userId, roomId}}) => {
-      console.log('we have the room Id');
+    .mutation(async ({input: {storyId, points, userId, roomId}, ctx}) => {
+      const {user} = ctx;
       await db
         .insert(votes)
         .values({
           storyId,
           userId,
+          points,
         })
         .onConflictDoUpdate({
           set: {
@@ -42,11 +42,10 @@ export const storiesRouter = {
         })
         .returning();
 
-      emitter.emit('roomUpdate', roomId);
+      emitter.emit('roomUpdate', {roomId, actorId: user?.id || ''});
       const submittedVotes = await db.query.votes.findMany({
         where: (votes, {eq}) => eq(votes.storyId, storyId),
       });
-      console.log('votes', submittedVotes);
 
       return submittedVotes;
     }),

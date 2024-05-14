@@ -5,7 +5,7 @@ import TypedEmitter from 'typed-emitter';
 // Define your emitter's types like that:
 // Key: Event name; Value: Listener function signature
 export type MessageEvents = {
-  roomUpdate: (roomId: string) => void;
+  roomUpdate: (args: {roomId: string; actorId: string}) => void;
   storyUpdate: (storyId: number) => void;
   userJoin: (route: string | null) => void;
   anotherOne: (data: boolean) => boolean;

@@ -7,8 +7,6 @@ import {zfd} from 'zod-form-data';
 import {z} from 'zod';
 import {loaderTrpc} from '~/trpc/routers/_app';
 import {emitter} from '~/services/emitter.server';
-import {createEventStream} from '~/services/create-event-stream';
-import {protectedProcedure} from '~/trpc/trpc.server';
 
 export const Intent = z.enum(['Join', 'Leave']);
 export type IntentEnum = z.infer<typeof Intent>;
@@ -34,13 +32,6 @@ export async function action(args: ActionFunctionArgs) {
 
   if (intent === 'Join') {
     const usersAtRoute = await trpc.users.updatePresence(route);
-    UserPresence.set(user.id, {
-      ...user,
-      lastSeenWhere: route,
-      lastSeenWhen: new Date().toISOString(),
-      intent: 'Join',
-    });
-
     return json({users: usersAtRoute});
   }
 
