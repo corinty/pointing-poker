@@ -7,7 +7,7 @@ import {getBrowserEnv} from '~/utils/getBrowserEnv';
 import {useEventSource} from 'remix-utils/sse/react';
 import {usersRouter} from '~/trpc/routers/users.router';
 import {AppRouter, RouterOutput} from '~/trpc/routers/_app';
-
+import {parse} from 'superjson';
 const presenceURL = '/user/presence';
 
 function leaveRoom() {
@@ -70,7 +70,7 @@ export function usePresentUsers(): Map<PresentUser['id'], PresentUser> {
 
   if (!userStream) return new Map();
 
-  const usersArray = JSON.parse(userStream) as Array<PresentUser>;
+  const usersArray = parse<Array<PresentUser>>(userStream);
 
   return new Map(usersArray.map((user) => [user.id, user]));
 }

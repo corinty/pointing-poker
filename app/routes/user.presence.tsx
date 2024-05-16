@@ -1,6 +1,7 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, json} from '@remix-run/node';
 import {eventStream} from 'remix-utils/sse/server';
 import {User, authenticator} from '~/services/auth.server';
+import {stringify} from 'superjson';
 
 import {remember} from '@epic-web/remember';
 import {zfd} from 'zod-form-data';
@@ -51,12 +52,15 @@ export async function loader({request}: LoaderFunctionArgs) {
 
   return eventStream(request.signal, (send) => {
     const handle = async (joinedRoute: string | null) => {
+      console.log(joinedRoute, route);
+
       if (joinedRoute !== decodeURIComponent(route)) return;
       const users = await trpc.users.usersAtRoute(route);
+      console.log(users);
 
       send({
         event: 'users',
-        data: JSON.stringify(users),
+        data: stringify(users),
       });
     };
 

@@ -72,6 +72,7 @@
     "remix-utils": "^7.6.0",
     "remix-validated-form": "^5.1.5",
     "simpledotcss": "^2.2.1",
+    "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "type-fest": "^4.10.2",

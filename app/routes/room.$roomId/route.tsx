@@ -9,11 +9,13 @@ import {useDisclosure} from '@mantine/hooks';
 import {RouterOutput, loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
 import {authenticator} from '~/services/auth.server';
-import {usePresentUsers} from '~/hooks/usePresentUsers';
 import {useLiveLoader} from '~/hooks/useLiveLoaderData';
 import {VoteFields, useClearVotesMutation} from '../api.story.$storyId/route';
 import {StoryDetails} from '~/routes/room.$roomId/components/StoryDetails';
 import {useDisplayVotesMutaiton} from '../api.room.$roomId/route';
+import {Voting} from './components/Voting';
+import {usePresentUsers} from '~/hooks/usePresentUsers';
+import {useVoteStats} from './hooks/useVoteStats';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -30,18 +32,22 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const story = room?.activeStory;
   if (!story) throw new Error('missing activeStory');
 
-  return json({room, user, story});
+  const votes = Object.fromEntries(
+    story.votes.map((vote) => [vote.user.id, vote]),
+  );
+
+  return json({room, user, story, votes});
 };
 
 export default function Room() {
   const {roomId} = useParams();
   if (!roomId) throw Error('missing param');
 
-  const users = usePresentUsers();
-
   const [showVotesMutation] = useDisplayVotesMutaiton(roomId);
 
   const fetcher = useFetcher();
+  // TODO remove or mae idempotent per route
+  const {users} = useVoteStats();
 
   const {width, height} = useWindowSize();
 
@@ -76,6 +82,7 @@ export default function Room() {
       <Outlet />
       <div className="flex flex-col gap-2 ">
         <StoryDetails />
+        <Voting />
         <div className="flex gap-3">
           <button
             className="w-1/2 bg-neutral-600"
@@ -176,16 +183,14 @@ export default function Room() {
             </div>
             <div className="flex flex-col gap-4">
               {Object.values(users).map((user) => {
-                const {name, id} =
-                  user as RouterOutput['users']['usersAtRoute']['0'];
-                const playerVoted = currentUserVote;
+                const {name, id, vote} = user;
                 return (
                   <div className={'grid grid-cols-2 gap-2'} key={id}>
                     {room.displayVotes ? (
-                      <div className="text-9xl">{user.vote ?? '?'}</div>
+                      <div className="text-9xl">{vote?.points ?? '?'}</div>
                     ) : (
                       <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">
-                        {playerVoted && <div>✅</div>}
+                        {vote && <div>✅</div>}
                       </div>
                     )}
                     <div className="player text-center">

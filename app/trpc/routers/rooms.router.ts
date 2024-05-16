@@ -1,11 +1,6 @@
 import {z} from 'zod';
 import {publicProcedure} from '../trpc.server';
 import {createRoom, getRoom} from '~/db/rooms.repository.server';
-import {createStory} from '~/db/stories.repository.server';
-import {db} from '~/db/drizzle.server';
-import {rooms} from '~/db/schema/rooms';
-import {eq} from 'drizzle-orm';
-import {emitter} from '~/services/emitter.server';
 
 export const roomsRouter = {
   get: publicProcedure.input(z.string()).query(async (opts) => {
@@ -16,9 +11,4 @@ export const roomsRouter = {
 
     return room;
   }),
-  nextStory: publicProcedure
-    .input(z.string())
-    .mutation(async ({input, ctx}) => {
-
-    }),
 };
