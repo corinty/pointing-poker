@@ -1,15 +1,17 @@
 import {useLiveLoader} from '~/hooks/useLiveLoaderData';
 import {loader} from '../route';
-import {useFetcher} from '@remix-run/react';
+import {useUpdateStoryDescription} from '~/routes/api.story.$storyId/route';
+import {useNextStoryMutation} from '~/routes/api.room.$roomId/route';
 
 export function StoryDetails() {
-  const {story} = useLiveLoader<typeof loader>();
+  const {story, room} = useLiveLoader<typeof loader>();
 
-  const {submit, formData} = useFetcher();
+  const [updateStoryDescription, {description}] = useUpdateStoryDescription({
+    description: story.description,
+    storyId: story.id,
+  });
 
-  const description = formData?.has('description')
-    ? String(formData.get('description'))
-    : story?.description;
+  const [nextStory] = useNextStoryMutation();
 
   return (
     <>
@@ -19,31 +21,13 @@ export function StoryDetails() {
           name="description"
           value={description}
           onChange={async (e) => {
-            const value = e.target.value;
-            submit(
-              {
-                description: value,
-                intent: 'updateStory',
-              },
-              {
-                action: `/api/story/${story.id}`,
-                method: 'POST',
-              },
-            );
+            updateStoryDescription({description: e.target.value, id: story.id});
           }}
         />
         <button
           style={{height: '100%', margin: '0'}}
           onClick={async () => {
-            // await nextStoryMutation.mutateAsync(roomId);
-            // revalidate();
-            submit(
-              {intent: 'nextStory'},
-              {
-                action: `/room/${story.roomId}/update`,
-                method: 'POST',
-              },
-            );
+            nextStory(room.id);
           }}
         >
           Next Story

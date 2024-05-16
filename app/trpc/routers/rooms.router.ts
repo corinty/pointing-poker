@@ -19,18 +19,6 @@ export const roomsRouter = {
   nextStory: publicProcedure
     .input(z.string())
     .mutation(async ({input, ctx}) => {
-      const {id} = await createStory(input);
-      const {user} = ctx;
 
-      const story = await db
-        .update(rooms)
-        .set({activeStoryId: id, displayVotes: false})
-        .where(eq(rooms.id, input))
-        .returning()
-        .then((a) => a[0]);
-
-      emitter.emit('roomUpdate', {roomId: input, actorId: user?.id || ''});
-
-      return story;
     }),
 };

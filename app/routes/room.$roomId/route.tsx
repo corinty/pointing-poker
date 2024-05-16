@@ -5,16 +5,15 @@ import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
 import classNames from 'classnames';
-import {trpc} from '~/utils/trpc';
 import {useDisclosure} from '@mantine/hooks';
 import {RouterOutput, loaderTrpc} from '~/trpc/routers/_app';
 import {useVotes} from '~/hooks/useVotes';
 import {authenticator} from '~/services/auth.server';
 import {usePresentUsers} from '~/hooks/usePresentUsers';
 import {useLiveLoader} from '~/hooks/useLiveLoaderData';
-import {VoteFields} from '../story.$storyId';
+import {VoteFields, useClearVotesMutation} from '../api.story.$storyId/route';
 import {StoryDetails} from '~/routes/room.$roomId/components/StoryDetails';
-import {useShowVotesMutation} from '../api.room.$roomId';
+import {useDisplayVotesMutaiton} from '../api.room.$roomId/route';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -40,7 +39,7 @@ export default function Room() {
 
   const users = usePresentUsers();
 
-  const showVotesMutation = useShowVotesMutation(roomId);
+  const [showVotesMutation] = useDisplayVotesMutaiton(roomId);
 
   const fetcher = useFetcher();
 
@@ -51,15 +50,16 @@ export default function Room() {
       setTimeout(() => setConfetti.close(), 5000);
     },
   });
-  const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
 
   const {room, user: currentUser, story} = useLiveLoader<typeof loader>();
+
+  const [clearVotesMutaiton] = useClearVotesMutation();
 
   const {averageVote, hasConsensus} = useVotes(roomId);
 
   if (!currentUser) return <p>oh no.....you must be logged in</p>;
 
-  const {id, votes} = story;
+  const {votes} = story;
 
   const currentUserVote = fetcher.formData
     ? Number(fetcher.formData.get(VoteFields.Points))
@@ -80,9 +80,7 @@ export default function Room() {
           <button
             className="w-1/2 bg-neutral-600"
             onClick={() => {
-              // TODO:: Need to clear local presence votes
-              // Clear Votes
-              clearVotesMutation.mutate(id);
+              clearVotesMutaiton(story.id);
             }}
           >
             Clear Votes
@@ -92,7 +90,7 @@ export default function Room() {
               ['bg-green-500 ']: !room.displayVotes,
             })}
             onClick={() => {
-              showVotesMutation.mutate(!room.displayVotes);
+              showVotesMutation(!room.displayVotes);
             }}
           >
             {room.displayVotes ? 'Hide Votes' : 'Show Votes'}
@@ -135,7 +133,7 @@ export default function Room() {
               {pointValues.map((value) => (
                 <fetcher.Form
                   key={value}
-                  action={`story/${story.id}`}
+                  action={`/api/story/${story.id}`}
                   method="post"
                 >
                   <input
@@ -146,8 +144,8 @@ export default function Room() {
                   />
                   <input
                     type="hidden"
-                    name={VoteFields.StoryId}
-                    value={room.activeStoryId!}
+                    name={VoteFields.RoomId}
+                    value={room.id}
                     readOnly
                   />
                   <input
