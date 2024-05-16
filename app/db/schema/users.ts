@@ -5,12 +5,12 @@ import {
   unique,
   integer,
 } from 'drizzle-orm/sqlite-core';
-import * as crypto from 'crypto';
+import {nanoid} from 'nanoid';
 
 export const users = sqliteTable(
   'users',
   {
-    id: text('id').primaryKey().notNull().default(crypto.randomUUID()),
+    id: text('id').primaryKey().notNull().default(nanoid()),
     createdAt: integer('created_at', {mode: 'timestamp_ms'}).$default(
       () => new Date(),
     ),

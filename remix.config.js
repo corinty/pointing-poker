@@ -6,7 +6,7 @@ export default {
   // serverModuleFormat: "esm", // or 'esm' both worked
   serverDependenciesToBundle: ['react-firebase-hooks/firestore'],
   browserNodeBuiltinsPolyfill: {
-    modules: {perf_hooks: true, stream: true, crypto: true, tls: true},
+    modules: {perf_hooks: true, stream: true, tls: true},
   },
   future: {
     v3_relativeSplatPath: true,

@@ -1,15 +1,15 @@
-import {eq} from 'drizzle-orm';
+import {InferSelectModel, eq} from 'drizzle-orm';
 import {db} from './drizzle.server';
 import {rooms} from './schema/rooms';
-import {stories} from './schema/stories';
+import {createStory} from './stories.repository.server';
 
-export const createRoom = async (roomId: string) => {
+export const createRoom = async (roomId: Room['id']) => {
   await db.insert(rooms).values({id: roomId}).onConflictDoNothing();
-  const story = await db.insert(stories).values({roomId}).returning();
+  const story = await createStory(roomId);
 
   await db
     .update(rooms)
-    .set({activeStoryId: story[0].id})
+    .set({activeStoryId: story.id})
     .where(eq(rooms.id, roomId))
     .returning();
 
@@ -46,3 +46,5 @@ export const getRoom = async (roomId: string) => {
   });
   return room;
 };
+
+export type Room = InferSelectModel<typeof rooms>;

@@ -3,9 +3,9 @@ import {sessionStorage} from './session.server';
 import {Authenticator} from 'remix-auth';
 import {FormStrategy} from 'remix-auth-form';
 import invariant from 'invariant';
-import * as crypto from 'node:crypto';
 
 import {generateId} from 'zoo-ids';
+import {nanoid} from 'nanoid';
 import randomEmoji from '~/utils/randomEmoji';
 import {db} from '~/db/drizzle.server';
 import {users} from '~/db/schema/users';
@@ -47,7 +47,7 @@ authenticator.use(
     if (!guest) {
       throw new Error('Guest form element missing');
     }
-    const anonNameSeed = crypto.randomUUID();
+    const anonNameSeed = nanoid();
 
     const anonUser = {
       id: `anon-${generateId(anonNameSeed, {

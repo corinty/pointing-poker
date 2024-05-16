@@ -8,7 +8,13 @@ export async function loader({request, params}: LoaderFunctionArgs) {
   const user = await authenticator.isAuthenticated(request);
 
   return eventStream(request.signal, (send) => {
-    const handle = ({roomId, actorId}: {roomId: string; actorId: string}) => {
+    const handle = ({
+      roomId,
+      actorId,
+    }: {
+      roomId: string;
+      actorId?: string | null;
+    }) => {
       // Only send events if the room update is for the room we are subscribed to
       if (roomId !== params.roomId) return;
 

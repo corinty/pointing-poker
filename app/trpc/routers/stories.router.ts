@@ -12,14 +12,15 @@ export const storiesRouter = {
   }),
   updateDescription: publicProcedure
     .input(updateDescriptionSchema)
-    .mutation(async ({input: {description, id}}) => {
+    .mutation(async ({input: {description, id}, ctx: {user}}) => {
       const story = await db
         .update(stories)
         .set({description})
         .where(eq(stories.id, id))
-        .returning();
+        .returning()
+        .then((stories) => stories[0]);
 
-      emitter.emit('storyUpdate', id);
+      emitter.emit('roomUpdate', {actorId: user?.id, roomId: story.roomId});
 
       return story;
     }),
@@ -40,7 +41,8 @@ export const storiesRouter = {
           },
           target: [votes.storyId, votes.userId],
         })
-        .returning();
+        .returning()
+        .then((a) => a.at(0));
 
       emitter.emit('roomUpdate', {roomId, actorId: user?.id || ''});
       const submittedVotes = await db.query.votes.findMany({

@@ -12,7 +12,9 @@ import {useVotes} from '~/hooks/useVotes';
 import {authenticator} from '~/services/auth.server';
 import {usePresentUsers} from '~/hooks/usePresentUsers';
 import {useLiveLoader} from '~/hooks/useLiveLoaderData';
-import {VoteFields} from './room.$roomId.vote';
+import {VoteFields} from '../story.$storyId';
+import {StoryDetails} from '~/routes/room.$roomId/components/StoryDetails';
+import {useShowVotesMutation} from '../api.room.$roomId';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -26,7 +28,10 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const trpc = await loaderTrpc(args.request);
 
   const room = await trpc.rooms.get(params.roomId!);
-  return json({room, user, story: room?.activeStory});
+  const story = room?.activeStory;
+  if (!story) throw new Error('missing activeStory');
+
+  return json({room, user, story});
 };
 
 export default function Room() {
@@ -34,6 +39,8 @@ export default function Room() {
   if (!roomId) throw Error('missing param');
 
   const users = usePresentUsers();
+
+  const showVotesMutation = useShowVotesMutation(roomId);
 
   const fetcher = useFetcher();
 
@@ -44,19 +51,15 @@ export default function Room() {
       setTimeout(() => setConfetti.close(), 5000);
     },
   });
-  const [displayVotes, displayVoteHandlers] = useDisclosure(false);
-
   const clearVotesMutation = trpc.story.clearAllVotes.useMutation();
 
   const {room, user: currentUser, story} = useLiveLoader<typeof loader>();
 
   const {averageVote, hasConsensus} = useVotes(roomId);
 
-  if (!story) throw new Error('missing active story');
-
   if (!currentUser) return <p>oh no.....you must be logged in</p>;
 
-  const {description, id, votes} = story;
+  const {id, votes} = story;
 
   const currentUserVote = fetcher.formData
     ? Number(fetcher.formData.get(VoteFields.Points))
@@ -72,26 +75,7 @@ export default function Room() {
       </div>
       <Outlet />
       <div className="flex flex-col gap-2 ">
-        <div>
-          <div className="flex gap-2">
-            <textarea
-              className="m-0 min-h-32 w-1/2"
-              value={description || ''}
-              onChange={async () => {
-                // TODO way to update and sync story description
-              }}
-            />
-            <button
-              style={{height: '100%', margin: '0'}}
-              onClick={() => {
-                // TODO Next Story fn
-              }}
-            >
-              Next Story
-            </button>
-          </div>
-          <small className="opacity-50 mt-0">Story ID: {id}</small>
-        </div>
+        <StoryDetails />
         <div className="flex gap-3">
           <button
             className="w-1/2 bg-neutral-600"
@@ -104,18 +88,20 @@ export default function Room() {
             Clear Votes
           </button>{' '}
           <button
-            className={classNames('w-1/2 bg-green-500 ', {})}
+            className={classNames('w-1/2 ', {
+              ['bg-green-500 ']: !room.displayVotes,
+            })}
             onClick={() => {
-              displayVoteHandlers.open();
+              showVotesMutation.mutate(!room.displayVotes);
             }}
           >
-            Show Votes
+            {room.displayVotes ? 'Hide Votes' : 'Show Votes'}
           </button>
         </div>
 
         <div className="flex items-center gap-4">
           <h3 className="m-0 text-2xl p-0">Results:</h3>
-          {displayVotes ? (
+          {room.displayVotes ? (
             <>
               <p>
                 Average: <mark>{averageVote}</mark>
@@ -133,7 +119,7 @@ export default function Room() {
                     {animate__wobble: hasConsensus},
                   )}
                 >
-                  {hasConsensus.toString().toUpperCase()}
+                  {String(hasConsensus).toUpperCase()}
                 </div>
               </p>
             </>
@@ -147,10 +133,14 @@ export default function Room() {
             <h3>Vote</h3>
             <div className="points">
               {pointValues.map((value) => (
-                <fetcher.Form key={value} action={`./vote`} method="post">
+                <fetcher.Form
+                  key={value}
+                  action={`story/${story.id}`}
+                  method="post"
+                >
                   <input
                     type="hidden"
-                    name={VoteFields.Intent}
+                    name={VoteFields.Action}
                     value={'submitVote'}
                     readOnly
                   />
@@ -160,7 +150,12 @@ export default function Room() {
                     value={room.activeStoryId!}
                     readOnly
                   />
-                  <input type="hidden" name="points" value={value} readOnly />
+                  <input
+                    type="hidden"
+                    name={VoteFields.Points}
+                    value={value}
+                    readOnly
+                  />
                   <button
                     type="submit"
                     // disabled={fetcher.state !== 'idle'}
@@ -188,7 +183,7 @@ export default function Room() {
                 const playerVoted = currentUserVote;
                 return (
                   <div className={'grid grid-cols-2 gap-2'} key={id}>
-                    {displayVotes ? (
+                    {room.displayVotes ? (
                       <div className="text-9xl">{user.vote ?? '?'}</div>
                     ) : (
                       <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">

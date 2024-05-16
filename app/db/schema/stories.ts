@@ -33,7 +33,7 @@ export const storyRelations = relations(stories, ({one, many}) => ({
 export type Story = InferSelectModel<typeof stories>;
 
 export const updateDescriptionSchema = createInsertSchema(stories)
-  .pick({id: true, description: true, roomId: true})
+  .pick({id: true, description: true})
   .required({
     id: true,
     description: true,
