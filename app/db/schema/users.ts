@@ -17,6 +17,7 @@ export const users = sqliteTable(
     name: text('name'),
     email: text('email'),
     profilePicture: text('profile_picture'),
+    role: text('role').default('anon').notNull(),
     lastSeenWhere: text('last_seen_where'),
     lastSeenAt: integer('last_seen_at', {mode: 'timestamp_ms'}).$default(
       () => new Date(),
@@ -35,5 +36,3 @@ export const users = sqliteTable(
     };
   },
 );
-
-export type SelectUser = typeof users.$inferSelect;

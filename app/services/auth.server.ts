@@ -4,19 +4,8 @@ import {Authenticator} from 'remix-auth';
 import {FormStrategy} from 'remix-auth-form';
 import invariant from 'invariant';
 
-import {generateId} from 'zoo-ids';
-import {nanoid} from 'nanoid';
-import randomEmoji from '~/utils/randomEmoji';
-import {db} from '~/db/drizzle.server';
-import {users} from '~/db/schema/users';
 import {redirect} from '@remix-run/node';
-
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  profilePicture: string;
-};
+import {User, createAnonUser} from '~/db/users.repository.server';
 
 export async function requireAuthenticatedUser(request: Request) {
   const user = await authenticator.isAuthenticated(request);
@@ -47,28 +36,7 @@ authenticator.use(
     if (!guest) {
       throw new Error('Guest form element missing');
     }
-    const anonNameSeed = nanoid();
 
-    const anonUser = {
-      id: `anon-${generateId(anonNameSeed, {
-        delimiter: '-',
-        caseStyle: 'lowercase',
-      })}`,
-      name: generateId(anonNameSeed, {delimiter: ' '}),
-      email: `${anonNameSeed}+fake@example.com`,
-      profilePicture: randomEmoji(),
-    } satisfies User;
-
-    try {
-      await db.insert(users).values(anonUser);
-      return anonUser;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-
-    // You can validate the inputs however you want
-
-    // And return the user as the Authenticator expects it
+    return createAnonUser();
   }),
 );

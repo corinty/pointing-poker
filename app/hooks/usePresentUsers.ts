@@ -8,6 +8,7 @@ import {useEventSource} from 'remix-utils/sse/react';
 import {usersRouter} from '~/trpc/routers/users.router';
 import {AppRouter, RouterOutput} from '~/trpc/routers/_app';
 import {parse} from 'superjson';
+import {User} from '~/db/users.repository.server';
 const presenceURL = '/user/presence';
 
 function leaveRoom() {
@@ -32,13 +33,12 @@ function joinRoom(route: string) {
   });
 }
 
-type PresentUser = RouterOutput['users']['usersAtRoute'][0];
-
-export function usePresentUsers(): Map<PresentUser['id'], PresentUser> {
+export function usePresentUsers(): Map<User['id'], User> {
   const location = useLocation();
   const route = location.pathname;
 
   const interval = useInterval(() => {
+    if (!document.hasFocus()) return;
     joinRoom(route);
   }, 300000);
 
@@ -51,6 +51,7 @@ export function usePresentUsers(): Map<PresentUser['id'], PresentUser> {
       interval.stop();
       leaveRoom();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useBeforeUnload(() => {
@@ -70,7 +71,7 @@ export function usePresentUsers(): Map<PresentUser['id'], PresentUser> {
 
   if (!userStream) return new Map();
 
-  const usersArray = parse<Array<PresentUser>>(userStream);
+  const usersArray = parse<Array<User>>(userStream);
 
   return new Map(usersArray.map((user) => [user.id, user]));
 }

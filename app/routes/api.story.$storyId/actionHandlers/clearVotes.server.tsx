@@ -1,7 +1,7 @@
 import {ActionFunctionArgs, json} from '@remix-run/node';
 import {eq} from 'drizzle-orm';
 import {db} from '~/db/drizzle.server';
-import {stories} from '~/db/schema/stories';
+import {rooms} from '~/db/schema/rooms';
 import {votes} from '~/db/schema/votes';
 import {requireAuthenticatedUser} from '~/services/auth.server';
 import {emitter} from '~/services/emitter.server';
@@ -14,12 +14,13 @@ export async function clearVotes({request, params}: ActionFunctionArgs) {
 
   await db.delete(votes).where(eq(votes.storyId, storyId));
 
-  const story = await db.query.stories.findFirst({
-    where: eq(stories.id, storyId),
-    columns: {roomId: true},
-  });
-  if (!story) throw new Error('no story found');
+  const room = await db
+    .update(rooms)
+    .set({displayVotes: false})
+    .where(eq(rooms.activeStoryId, storyId))
+    .returning()
+    .then((a) => a[0]);
 
-  emitter.emit('roomUpdate', {roomId: story.roomId, actorId: user.id});
+  emitter.emit('roomUpdate', {roomId: room.id, actorId: user.id});
   return json({ok: true});
 }

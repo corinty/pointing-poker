@@ -1,6 +1,10 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, json} from '@remix-run/node';
 import {eventStream} from 'remix-utils/sse/server';
-import {User, authenticator} from '~/services/auth.server';
+import {
+  User,
+  authenticator,
+  requireAuthenticatedUser,
+} from '~/services/auth.server';
 import {stringify} from 'superjson';
 
 import {remember} from '@epic-web/remember';
@@ -8,6 +12,7 @@ import {zfd} from 'zod-form-data';
 import {z} from 'zod';
 import {loaderTrpc} from '~/trpc/routers/_app';
 import {emitter} from '~/services/emitter.server';
+import {getUsersAtRoute} from '~/db/users.repository.server';
 
 export const Intent = z.enum(['Join', 'Leave']);
 export type IntentEnum = z.infer<typeof Intent>;
@@ -44,19 +49,17 @@ export async function action(args: ActionFunctionArgs) {
 }
 
 export async function loader({request}: LoaderFunctionArgs) {
+  await requireAuthenticatedUser(request);
+
   const url = new URL(request.url);
   const rawRoute = url.searchParams.get('route');
   const route = rawRoute ? decodeURIComponent(rawRoute) : null;
   if (!route) throw new Error('missing route search param');
-  const trpc = await loaderTrpc(request);
 
   return eventStream(request.signal, (send) => {
     const handle = async (joinedRoute: string | null) => {
-      console.log(joinedRoute, route);
-
       if (joinedRoute !== decodeURIComponent(route)) return;
-      const users = await trpc.users.usersAtRoute(route);
-      console.log(users);
+      const users = await getUsersAtRoute(route);
 
       send({
         event: 'users',
