@@ -6,7 +6,7 @@ import {GitHubStrategy} from 'remix-auth-github';
 import invariant from 'invariant';
 
 import {redirect} from '@remix-run/node';
-import {User, createAnonUser} from '~/db/users.repository.server';
+import {type User, createAnonUser} from '~/db/users.repository.server';
 
 export async function requireAuthenticatedUser(request: Request) {
   const user = await authenticator.isAuthenticated(request);

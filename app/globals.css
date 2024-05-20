@@ -84,10 +84,10 @@ nav {
   }
 }
 
-mark{
+mark {
   background-color: var(--accent);
 }
 
-[hidden]  {
-    display: none;
+[hidden] {
+  display: none;
 }

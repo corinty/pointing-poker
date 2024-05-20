@@ -1,7 +1,6 @@
 import toast from 'react-hot-toast';
 
 export default function CopyCurrentUrlToClipboard() {
-  
   const copyToClipboard = () => {
     navigator.clipboard.writeText(window.location.href).then(
       () => {

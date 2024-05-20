@@ -2,9 +2,6 @@
   "name": "pointing-poker",
   "private": true,
   "sideEffects": false,
-  "engines": {
-    "node": ">=20.6.0"
-  },
   "type": "module",
   "scripts": {
     "build": "remix build",
@@ -13,7 +10,7 @@
     "db:reset": "node --import tsx --env-file .env ./app/db/drizzle/reset.ts && npm run db:push && npm run  db:seed",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio --verbose",
-    "dev": "remix dev --manual",
+    "dev": "remix dev",
     "lint": "eslint --ignore,-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:formatting": "prettier --write app/**",
     "start": "remix-serve ./build/index.js",
