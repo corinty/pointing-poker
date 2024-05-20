@@ -15,7 +15,7 @@ export const users = sqliteTable(
       () => new Date(),
     ),
     name: text('name'),
-    email: text('email'),
+    email: text('email').notNull().unique(),
     profilePicture: text('profile_picture'),
     role: text('role').default('anon').notNull(),
     lastSeenWhere: text('last_seen_where'),

@@ -83,6 +83,9 @@ nav {
     text-align: right;
   }
 }
+body{
+  background-color: #242424;
+}
 
 mark {
   background-color: var(--accent);

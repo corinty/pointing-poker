@@ -69,6 +69,19 @@ export const getUser = async (userId: User['id']) => {
     },
   });
   if (!user) throw new Error('no user found');
+
+  return selectUserSchema.parse(user);
+};
+
+export const findOrCreateUserByEmail = async (
+  args: z.infer<typeof createUserSchema>,
+) => {
+  const user = await db
+    .insert(users)
+    .values(args)
+    .onConflictDoUpdate({target: users.email, set: args})
+    .returning();
+
   return selectUserSchema.parse(user);
 };
 

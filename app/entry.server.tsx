@@ -11,7 +11,22 @@ import {createReadableStreamFromReadable} from '@remix-run/node';
 import {RemixServer} from '@remix-run/react';
 import {isbot} from 'isbot';
 import {renderToPipeableStream} from 'react-dom/server';
+import {zodEnv} from './services/env';
+import {z} from 'zod';
 
+try {
+  zodEnv.parse(process.env);
+} catch (err) {
+  if (err instanceof z.ZodError) {
+    const {fieldErrors} = err.flatten();
+    const errorMessage = Object.entries(fieldErrors)
+      .map(([field, errors]) =>
+        errors ? `${field}: ${errors.join(', ')}` : field,
+      )
+      .join('\n  ');
+    throw new Error(`Missing environment variables:\n ${errorMessage}`);
+  }
+}
 const ABORT_DELAY = 5_000;
 
 export default function handleRequest(

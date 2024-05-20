@@ -6,7 +6,11 @@ import {GitHubStrategy} from 'remix-auth-github';
 import invariant from 'invariant';
 
 import {redirect} from '@remix-run/node';
-import {type User, createAnonUser} from '~/db/users.repository.server';
+import {
+  type User,
+  createAnonUser,
+  findOrCreateUserByEmail,
+} from '~/db/users.repository.server';
 
 export async function requireAuthenticatedUser(request: Request) {
   const user = await authenticator.isAuthenticated(request);
@@ -45,13 +49,22 @@ authenticator.use(
 authenticator.use(
   new GitHubStrategy(
     {
-      clientID: 'YOUR_CLIENT_ID',
-      clientSecret: 'YOUR_CLIENT_SECRET',
-      callbackURL: 'https://example.com/auth/github/callback',
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: `${process.env.SITE_URL}/auth/github/callback`,
     },
-    async ({accessToken, extraParams, profile}) => {
+    async ({profile}) => {
       // Get the user data from your DB or API using the tokens and profile
-      return User.findOrCreate({email: profile.emails[0].value});
+      const email = profile.emails[0].value;
+
+      if (!email) throw new Error('new github user email provided');
+
+      return await findOrCreateUserByEmail({
+        email,
+        name: profile.displayName,
+        profilePicture: profile.photos[0].value,
+        role: 'user',
+      });
     },
   ),
 );
