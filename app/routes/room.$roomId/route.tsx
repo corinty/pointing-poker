@@ -6,15 +6,14 @@ import styles from '~/styles/room.css';
 import {useWindowSize} from '~/utils/useWindowSize';
 import classNames from 'classnames';
 import {useDisclosure} from '@mantine/hooks';
-import {loaderTrpc} from '~/trpc/routers/_app';
-import {useVotes} from '~/hooks/useVotes';
 import {authenticator} from '~/services/auth.server';
 import {useLiveLoader} from '~/hooks/useLiveLoaderData';
 import {VoteFields, useClearVotesMutation} from '../api.story.$storyId/route';
 import {StoryDetails} from '~/routes/room.$roomId/components/StoryDetails';
 import {useDisplayVotesMutaiton} from '../api.room.$roomId/route';
-import {Voting} from './components/Voting';
 import {useVoteStats} from './hooks/useVoteStats';
+import {createRoom, getRoom} from '~/db/rooms.repository.server';
+import {useEffect} from 'react';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -25,11 +24,12 @@ export const loader = async (args: LoaderFunctionArgs) => {
   if (!params.roomId) throw new Error('missing room ID');
 
   const user = await authenticator.isAuthenticated(args.request);
-  const trpc = await loaderTrpc(args.request);
 
-  const room = await trpc.rooms.get(params.roomId!);
-  const story = room?.activeStory;
-  if (!story) throw new Error('missing activeStory');
+  let room = await getRoom(params.roomId);
+
+  if (!room) room = await createRoom(params.roomId);
+
+  const story = room.activeStory!;
 
   const votes = Object.fromEntries(
     story.votes.map((vote) => [vote.user.id, vote]),
@@ -48,13 +48,13 @@ export default function Room() {
 
   const {width, height} = useWindowSize();
 
+  const {room, user: currentUser, story} = useLiveLoader<typeof loader>();
+
   const [shouldShowConfetti, setConfetti] = useDisclosure(false, {
     onOpen: () => {
       setTimeout(() => setConfetti.close(), 5000);
     },
   });
-
-  const {room, user: currentUser, story} = useLiveLoader<typeof loader>();
 
   const [clearVotesMutaiton] = useClearVotesMutation();
 

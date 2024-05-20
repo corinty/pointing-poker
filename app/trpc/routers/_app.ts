@@ -1,13 +1,9 @@
 import {t} from '~/trpc/trpc.server';
-import {roomsRouter} from './rooms.router';
-import {storiesRouter} from './stories.router';
-import {usersRouter} from './users.router';
 import {authenticator} from '~/services/auth.server';
 import {inferRouterOutputs} from '@trpc/server';
+import {usersRouter} from './users.router';
 
 export const appRouter = t.router({
-  rooms: roomsRouter,
-  story: storiesRouter,
   users: usersRouter,
 });
 

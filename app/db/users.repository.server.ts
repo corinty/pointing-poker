@@ -38,7 +38,7 @@ export const createUser = async (data: z.infer<typeof createUserSchema>) => {
 
   return user.id;
 };
-export const createAnonUser = async () => {
+export const createAnonUser = async (): Promise<User> => {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('anon mode not allowed in production');
   }
@@ -55,7 +55,7 @@ export const createAnonUser = async () => {
 };
 
 export const getUser = async (userId: User['id']) => {
-  return db.query.users.findFirst({
+  const user = await db.query.users.findFirst({
     where(users, {eq}) {
       return eq(users.id, userId);
     },
@@ -65,8 +65,11 @@ export const getUser = async (userId: User['id']) => {
       name: true,
       profilePicture: true,
       lastSeenWhere: true,
+      role: true,
     },
   });
+  if (!user) throw new Error('no user found');
+  return selectUserSchema.parse(user);
 };
 
 export const getUsersAtRoute = async (route: string) => {

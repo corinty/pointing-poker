@@ -1,10 +1,6 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, json} from '@remix-run/node';
 import {eventStream} from 'remix-utils/sse/server';
-import {
-  User,
-  authenticator,
-  requireAuthenticatedUser,
-} from '~/services/auth.server';
+import {authenticator, requireAuthenticatedUser} from '~/services/auth.server';
 import {stringify} from 'superjson';
 
 import {remember} from '@epic-web/remember';
@@ -12,7 +8,7 @@ import {zfd} from 'zod-form-data';
 import {z} from 'zod';
 import {loaderTrpc} from '~/trpc/routers/_app';
 import {emitter} from '~/services/emitter.server';
-import {getUsersAtRoute} from '~/db/users.repository.server';
+import {User, getUsersAtRoute} from '~/db/users.repository.server';
 
 export const Intent = z.enum(['Join', 'Leave']);
 export type IntentEnum = z.infer<typeof Intent>;

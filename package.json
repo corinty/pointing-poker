@@ -69,6 +69,7 @@
     "react-use": "^17.5.0",
     "remix-auth": "^3.6.0",
     "remix-auth-form": "^1.4.0",
+    "remix-auth-github": "^1.7.0",
     "remix-utils": "^7.6.0",
     "remix-validated-form": "^5.1.5",
     "simpledotcss": "^2.2.1",

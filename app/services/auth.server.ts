@@ -2,6 +2,7 @@
 import {sessionStorage} from './session.server';
 import {Authenticator} from 'remix-auth';
 import {FormStrategy} from 'remix-auth-form';
+import {GitHubStrategy} from 'remix-auth-github';
 import invariant from 'invariant';
 
 import {redirect} from '@remix-run/node';
@@ -39,4 +40,18 @@ authenticator.use(
 
     return createAnonUser();
   }),
+);
+
+authenticator.use(
+  new GitHubStrategy(
+    {
+      clientID: 'YOUR_CLIENT_ID',
+      clientSecret: 'YOUR_CLIENT_SECRET',
+      callbackURL: 'https://example.com/auth/github/callback',
+    },
+    async ({accessToken, extraParams, profile}) => {
+      // Get the user data from your DB or API using the tokens and profile
+      return User.findOrCreate({email: profile.emails[0].value});
+    },
+  ),
 );
