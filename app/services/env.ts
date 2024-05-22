@@ -2,8 +2,6 @@
 import {z} from 'zod';
 
 export const zodEnv = z.object({
-  //Site Info
-  SITE_URL: z.string(),
   // Database
   DATABASE_URL: z.string(),
   // Cloudflare

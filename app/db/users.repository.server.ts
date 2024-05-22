@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {TypeOf, z} from 'zod';
 import {db} from './drizzle.server';
 import {users} from './schema/users';
 import {createInsertSchema, createSelectSchema} from 'drizzle-zod';
@@ -32,26 +32,34 @@ const createUserSchema = createInsertSchema(users, {
 export const createUser = async (data: z.infer<typeof createUserSchema>) => {
   const user = await db
     .insert(users)
-    .values(data)
+    .values({id: nanoid(), ...data})
     .returning()
     .then((a) => a[0]);
 
   return user.id;
 };
-export const createAnonUser = async (): Promise<User> => {
+export const createAnonUser = async (name?: string): Promise<User> => {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('anon mode not allowed in production');
   }
   const anonNameSeed = nanoid();
 
-  const userId = await createUser({
-    name: generateId(anonNameSeed, {delimiter: ' '}),
-    email: `${generateId(anonNameSeed)}+fake@example.com`,
-    profilePicture: randomEmoji(),
-    role: 'anon',
-  });
+  try {
+    const userId = await createUser({
+      name:
+        name && name?.length > 0
+          ? name
+          : generateId(anonNameSeed, {delimiter: ' '}),
+      email: `${name}+${generateId(anonNameSeed)}+fake@example.com`,
+      profilePicture: randomEmoji(),
+      role: 'anon',
+    });
 
-  return getUser(userId);
+    return getUser(userId);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
 
 export const getUser = async (userId: User['id']) => {
@@ -85,10 +93,23 @@ export const findOrCreateUserByEmail = async (
   return selectUserSchema.parse(user);
 };
 
+export const presentUserSchema = selectUserSchema.omit({lastSeenWhere: true});
+
+export type PresentUser = z.infer<typeof presentUserSchema>;
+
 export const getUsersAtRoute = async (route: string) => {
-  return db.query.users.findMany({
+  const users = await db.query.users.findMany({
+    columns: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      profilePicture: true,
+    },
     where: (users, {eq}) => eq(users.lastSeenWhere, route),
   });
+
+  return Promise.all(users.map((user) => presentUserSchema.parseAsync(user)));
 };
 
 export default {

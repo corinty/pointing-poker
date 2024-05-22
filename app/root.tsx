@@ -1,9 +1,5 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {httpBatchLink} from '@trpc/client';
-import {trpc} from '~/utils/trpc';
-
 import {cssBundleHref} from '@remix-run/css-bundle';
 import '@mantine/core/styles.css';
 import '@mantine/nprogress/styles.css';
@@ -20,7 +16,6 @@ import {
   json,
   useLoaderData,
   useLocation,
-  useSearchParams,
 } from '@remix-run/react';
 import {useState} from 'react';
 import simpledotcss from 'simpledotcss/simple.css';
@@ -59,26 +54,9 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
-  const [queryClient] = useState(() => new QueryClient());
   const data = useLoaderData<typeof loader>();
-  const [searchParams] = useSearchParams();
   const location = useLocation();
   const {ENV, user} = data;
-  const [trpcClient] = useState(() =>
-    trpc.createClient({
-      links: [
-        httpBatchLink({
-          url: `${ENV.SITE_URL ? ENV.SITE_URL : 'http://localhost:3000'}/trpc`,
-          // You can pass any HTTP headers you wish here
-          async headers() {
-            return {};
-          },
-        }),
-      ],
-    }),
-  );
-
-  const loginRequired = false;
 
   return (
     <html lang="en">
@@ -90,84 +68,44 @@ export default function App() {
         <ColorSchemeScript />
       </head>
       <body>
-        <trpc.Provider client={trpcClient} queryClient={queryClient}>
-          <QueryClientProvider client={queryClient}>
-            <MantineProvider defaultColorScheme="dark">
-              <GlobalLoadingIndicator />
-              <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
-                <div>
-                  <Link to="/">Home</Link>
-                </div>
-                <div className="sign-in">
-                  {user ? (
-                    <button
-                      type="submit"
-                      className={classNames('animate__animated', {
-                        animate__wobble: loginRequired,
-                        'bg-purple-700': loginRequired,
-                        'text-white': loginRequired,
-                      })}
-                    >
-                      Welcome {user.name}:{' '}
-                      {user.id.includes('anon') && user.profilePicture}
+        <MantineProvider defaultColorScheme="dark">
+          <GlobalLoadingIndicator />
+          <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
+            <div>
+              <Link to="/">Home</Link>
+            </div>
+            {!location.pathname.includes('login') && (
+              <div className="sign-in">
+                {user ? (
+                  <Form method="post" action="/auth/logout">
+                    <button type="submit">
+                      Logout: {user.name}{' '}
+                      {user.role == 'anon' && user.profilePicture}
                     </button>
-                  ) : (
-                    <Form action="/auth/login" method="post">
-                      <input
-                        type="checkbox"
-                        hidden
-                        checked
-                        name="guest"
-                        readOnly
-                      />
-                      <input
-                        type="input"
-                        name="redirectTo"
-                        readOnly
-                        value={
-                          searchParams.get('redirectTo') || location.pathname
-                        }
-                        hidden
-                      />
-                      <button
-                        type="submit"
-                        className={classNames('animate__animated', {
-                          animate__wobble: loginRequired,
-                          'bg-purple-700': loginRequired,
-                          'text-white': loginRequired,
-                        })}
-                      >
-                        Guest
-                      </button>
-                    </Form>
-                  )}
-                </div>
-              </nav>
-              <Outlet />
-              <script
-                dangerouslySetInnerHTML={{
-                  __html: `window.ENV = ${JSON.stringify(ENV)}`,
-                }}
-              />
-              {loginRequired && (
-                <div className="flex justify-center">
-                  <button
-                    className="notice w-1/2 text-center text-white"
-                    onClick={() => {
-                      // TODO:: Sign
-                    }}
+                  </Form>
+                ) : (
+                  <Link
+                    to={`/auth/login?redirectTo=${encodeURIComponent(
+                      location.pathname,
+                    )}`}
                   >
-                    ⬆️ Please sign in ⬆️
-                  </button>
-                </div>
-              )}
-              <Toaster />
-              <ScrollRestoration />
-              <Scripts />
-              <LiveReload />
-            </MantineProvider>
-          </QueryClientProvider>
-        </trpc.Provider>
+                    <button>Log In</button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </nav>
+          <Outlet />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.ENV = ${JSON.stringify(ENV)}`,
+            }}
+          />
+          <Toaster />
+          <ScrollRestoration />
+          <Scripts />
+          <LiveReload />
+        </MantineProvider>
       </body>
     </html>
   );

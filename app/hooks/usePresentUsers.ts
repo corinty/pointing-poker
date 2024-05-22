@@ -8,7 +8,7 @@ import {useEventSource} from 'remix-utils/sse/react';
 import {usersRouter} from '~/trpc/routers/users.router';
 import {AppRouter, RouterOutput} from '~/trpc/routers/_app';
 import {parse} from 'superjson';
-import {User} from '~/db/users.repository.server';
+import {PresentUser, User} from '~/db/users.repository.server';
 const presenceURL = '/user/presence';
 
 function leaveRoom() {
@@ -33,7 +33,7 @@ function joinRoom(route: string) {
   });
 }
 
-export function usePresentUsers(): Map<User['id'], User> {
+export function usePresentUsers(): Array<PresentUser> {
   const location = useLocation();
   const route = location.pathname;
 
@@ -61,17 +61,16 @@ export function usePresentUsers(): Map<User['id'], User> {
 
   useWindowEvent('focus', () => joinRoom(route));
 
-  const streamUrl = new URL(presenceURL, getBrowserEnv().SITE_URL);
+  const userStream = useEventSource(
+    `/user/presence?route=${encodeURIComponent(route)}`,
+    {
+      event: 'users',
+    },
+  );
 
-  streamUrl.searchParams.set('route', encodeURIComponent(route));
-
-  const userStream = useEventSource(streamUrl.href, {
-    event: 'users',
-  });
-
-  if (!userStream) return new Map();
+  if (!userStream) return [];
 
   const usersArray = parse<Array<User>>(userStream);
 
-  return new Map(usersArray.map((user) => [user.id, user]));
+  return usersArray;
 }

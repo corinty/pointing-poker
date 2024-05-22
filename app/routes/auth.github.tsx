@@ -3,9 +3,15 @@ import {redirect} from '@remix-run/node';
 import {authenticator} from '~/services/auth.server';
 
 export async function loader() {
-  return redirect('/login');
+  return redirect('/auth/login');
 }
 
 export async function action({request}: ActionFunctionArgs) {
-  return authenticator.authenticate('github', request);
+  try {
+    return authenticator.authenticate('github', request, {
+      successRedirect: '/',
+    });
+  } catch (error) {
+    console.error(error);
+  }
 }

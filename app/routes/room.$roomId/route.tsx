@@ -13,11 +13,10 @@ import {StoryDetails} from '~/routes/room.$roomId/components/StoryDetails';
 import {useDisplayVotesMutaiton} from '../api.room.$roomId/route';
 import {useVoteStats} from './hooks/useVoteStats';
 import {createRoom, getRoom} from '~/db/rooms.repository.server';
-import {useEffect} from 'react';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
-const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100];
+export const pointValues = [0, 0.5, 1, 2, 3, 5, 8, 13, 20, 40, 100] as const;
 
 export const loader = async (args: LoaderFunctionArgs) => {
   const {params} = args;
@@ -32,7 +31,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const story = room.activeStory!;
 
   const votes = Object.fromEntries(
-    story.votes.map((vote) => [vote.user.id, vote]),
+    story.votes.map((vote) => [vote.userId, vote]),
   );
 
   return json({room, user, story, votes});
@@ -44,7 +43,7 @@ export default function Room() {
 
   const [showVotesMutation] = useDisplayVotesMutaiton(roomId);
 
-  const fetcher = useFetcher();
+  const fetcher = useFetcher({key: 'submitVote'});
 
   const {width, height} = useWindowSize();
 
@@ -58,15 +57,20 @@ export default function Room() {
 
   const [clearVotesMutaiton] = useClearVotesMutation();
 
-  const {averageVote, hasConsensus, users, suggestedVote} = useVoteStats();
+  const {
+    averageVote,
+    submissions,
+    hasConsensus,
+    users,
+    suggestedVote,
+    voteSpread,
+  } = useVoteStats();
 
   if (!currentUser) return <p>oh no.....you must be logged in</p>;
 
-  const {votes} = story;
-
   const currentUserVote = fetcher.formData
     ? Number(fetcher.formData.get(VoteFields.Points))
-    : Number(votes.find((vote) => vote.user.id === currentUser.id)?.points);
+    : Number(users[currentUser.id]?.vote?.points);
 
   return (
     <div className="flex flex-col gap-2 ">
@@ -99,7 +103,6 @@ export default function Room() {
             {room.displayVotes ? 'Hide Votes' : 'Show Votes'}
           </button>
         </div>
-
         <div className="flex w-full">
           <div className="w-1/2">
             <h3>Vote</h3>
@@ -145,35 +148,48 @@ export default function Room() {
           <div className=" text-left">
             <h3>Results:</h3>
             {room.displayVotes ? (
-              <ul className="text-right list-none">
-                <li>
-                  Suggested Vote: <mark>{suggestedVote}</mark>
-                </li>
-                <li>
-                  Average: <mark>{averageVote}</mark>
-                </li>
-                <li>
-                  Submitted Votes: <mark>{votes.length}</mark>
-                </li>
-                <li>
-                  Consensus:{' '}
-                  <span
-                    className={classNames(
-                      'animate__animated p-1 radiu',
-                      hasConsensus && 'bg-green-600 text-white font-bold ',
-                      {animate__wobble: hasConsensus},
-                    )}
-                  >
-                    {String(hasConsensus).toUpperCase()}
-                  </span>
-                </li>
-              </ul>
+              <>
+                <ul className="text-right list-none">
+                  <li>
+                    Suggested Vote: <mark>{suggestedVote}</mark>
+                  </li>
+                  <li>
+                    Average: <mark>{averageVote}</mark>
+                  </li>
+                  <li>
+                    Submitted Votes: <mark>{submissions.length}</mark>
+                  </li>
+                  <li>
+                    Consensus:{' '}
+                    <span
+                      className={classNames(
+                        'animate__animated p-1 radiu',
+                        hasConsensus && 'bg-green-600 text-white font-bold ',
+                        {animate__wobble: hasConsensus},
+                      )}
+                    >
+                      {String(hasConsensus).toUpperCase()}
+                    </span>
+                  </li>
+                  <li className="text-left pt-3 font-bold">
+                    Vote Spread:
+                    <ul className="list-inside font-normal">
+                      {voteSpread.map((entry) => {
+                        return (
+                          <li key={`vote-spread-${entry.value}`}>
+                            {entry.value} * {entry.frequency}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </li>
+                </ul>
+              </>
             ) : (
               <p className="text-center text-5xl">✨...🔮...🦄</p>
             )}
           </div>
         </div>
-
         <div className="grid grid-cols-2">
           <div className="submissions">
             <div className="flex">
@@ -212,7 +228,6 @@ export default function Room() {
             </div>
           </div>
         </div>
-
         {shouldShowConfetti && (
           <div style={{display: 'fixed', top: 0, left: 0}}>
             {' '}

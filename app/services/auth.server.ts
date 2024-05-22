@@ -17,7 +17,9 @@ export async function requireAuthenticatedUser(request: Request) {
 
   if (!user) {
     const url = new URL(request.url);
-    throw redirect(`/auth/login?redirectTo=${url.pathname}`);
+    throw redirect(
+      `/auth/login?redirectTo=${encodeURIComponent(url.pathname)}`,
+    );
   }
   return user;
 }
@@ -31,40 +33,35 @@ authenticator.use(
     // Here you can use `form` to access and input values from the form.
     // and also use `context` to access more things from the server
 
-    invariant(
-      process.env.NODE_ENV !== 'production',
-      'Guest mode not allowed in production',
+    return createAnonUser(
+      form.has('name') ? String(form.get('name')) : undefined,
     );
-
-    const guest = form.get('guest');
-
-    if (!guest) {
-      throw new Error('Guest form element missing');
-    }
-
-    return createAnonUser();
   }),
 );
 
-authenticator.use(
-  new GitHubStrategy(
-    {
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${process.env.SITE_URL}/auth/github/callback`,
-    },
-    async ({profile}) => {
-      // Get the user data from your DB or API using the tokens and profile
-      const email = profile.emails[0].value;
+// authenticator
+//   // .use
+//   // // new GitHubStrategy(
+//   {
+//     clientID: process.env.GITHUB_CLIENT_ID,
+//     clientSecret: process.env.GITHUB_CLIENT_SECRET,
+//     callbackURL: `http://localhost:3000/auth/github/callback`,
+//   },
+//   async ({profile}) => {
+//     console.log(profile);
+//     // Get the user data from your DB or API using the tokens and profile
+//     const email = profile.emails[0].value;
+//     console.log('email----', email);
+//     if (!email) throw new Error('new github user email provided');
 
-      if (!email) throw new Error('new github user email provided');
+//     const user = await findOrCreateUserByEmail({
+//       email,
+//       name: profile.displayName,
+//       profilePicture: profile.photos[0].value,
+//       role: 'user',
+//     });
+//     console.log({freshUser: user});
 
-      return await findOrCreateUserByEmail({
-        email,
-        name: profile.displayName,
-        profilePicture: profile.photos[0].value,
-        role: 'user',
-      });
-    },
-  ),
-);
+//     return user;
+//   },
+// ),
