@@ -61,16 +61,22 @@ export function usePresentUsers(): Array<PresentUser> {
 
   useWindowEvent('focus', () => joinRoom(route));
 
-  const userStream = useEventSource(
-    `/user/presence?route=${encodeURIComponent(route)}`,
-    {
-      event: 'users',
-    },
-  );
+  const streamRoute = `/user/presence?route=${encodeURIComponent(route)}`;
+
+  const userStream = useEventSource(streamRoute, {
+    event: 'users',
+  });
+
+  const userPing = useEventSource(streamRoute, {
+    event: 'userPing',
+  });
+
+  useEffect(() => {
+    if (!userPing) return;
+    joinRoom(route);
+  }, [userPing, route]);
 
   if (!userStream) return [];
 
-  const usersArray = parse<Array<User>>(userStream);
-
-  return usersArray;
+  return parse<Array<User>>(userStream);
 }

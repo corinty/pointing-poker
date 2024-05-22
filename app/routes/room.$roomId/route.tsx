@@ -1,5 +1,5 @@
 import {LinksFunction, LoaderFunctionArgs, json} from '@remix-run/node';
-import {Outlet, useFetcher, useParams} from '@remix-run/react';
+import {Form, Outlet, useFetcher, useParams} from '@remix-run/react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import styles from '~/styles/room.css';
@@ -13,6 +13,7 @@ import {StoryDetails} from '~/routes/room.$roomId/components/StoryDetails';
 import {useDisplayVotesMutaiton} from '../api.room.$roomId/route';
 import {useVoteStats} from './hooks/useVoteStats';
 import {createRoom, getRoom} from '~/db/rooms.repository.server';
+import {RefreshUsers} from './components/RefreshUsers';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -226,6 +227,10 @@ export default function Room() {
                 );
               })}
             </div>
+            <RefreshUsers
+              userIds={Object.keys(users)}
+              currentUserId={currentUser.id}
+            />
           </div>
         </div>
         {shouldShowConfetti && (

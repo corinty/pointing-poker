@@ -5,11 +5,14 @@ import {createInsertSchema, createSelectSchema} from 'drizzle-zod';
 import {generateId} from 'zoo-ids';
 import {nanoid} from 'nanoid';
 import randomEmoji from '~/utils/randomEmoji';
+import {Room} from './rooms.repository.server';
+import {eq} from 'drizzle-orm';
+import {emitter} from '~/services/emitter.server';
 
 const userRoles = z.enum(['anon', 'user', 'admin']);
 export type User = z.infer<typeof selectUserSchema>;
 
-const selectUserSchema = createSelectSchema(users, {
+export const selectUserSchema = createSelectSchema(users, {
   role: userRoles,
 }).pick({
   id: true,
@@ -79,6 +82,31 @@ export const getUser = async (userId: User['id']) => {
   if (!user) throw new Error('no user found');
 
   return selectUserSchema.parse(user);
+};
+
+export const updateUserPresence = async ({
+  route,
+  userId,
+}: {
+  route: string | null;
+  userId: User['id'];
+}) => {
+  const updatedUser = await db
+    .update(users)
+    .set({
+      lastSeenWhere: route,
+      lastSeenAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning();
+
+  emitter.emit('userJoin', route);
+
+  if (!route) return updatedUser;
+
+  return db.query.users.findMany({
+    where: (users, {eq}) => eq(users.lastSeenWhere, route),
+  });
 };
 
 export const findOrCreateUserByEmail = async (

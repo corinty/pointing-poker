@@ -8,15 +8,14 @@ import {zfd} from 'zod-form-data';
 import {z} from 'zod';
 import {loaderTrpc} from '~/trpc/routers/_app';
 import {emitter} from '~/services/emitter.server';
-import {User, getUsersAtRoute} from '~/db/users.repository.server';
+import {
+  User,
+  getUsersAtRoute,
+  updateUserPresence,
+} from '~/db/users.repository.server';
 
 export const Intent = z.enum(['Join', 'Leave']);
 export type IntentEnum = z.infer<typeof Intent>;
-
-export const UserPresence = remember(
-  'presenceMap',
-  () => new Map<string, User>(),
-);
 
 const schema = zfd.formData({
   route: zfd.text(),
@@ -25,27 +24,23 @@ const schema = zfd.formData({
 
 export async function action(args: ActionFunctionArgs) {
   const {request} = args;
-  const user = await authenticator.isAuthenticated(request);
-  if (!user) return null;
-
-  const trpc = await loaderTrpc(request);
+  const user = await requireAuthenticatedUser(request);
 
   const {route, intent} = schema.parse(await request.formData());
 
   if (intent === 'Join') {
-    const usersAtRoute = await trpc.users.updatePresence(route);
+    const usersAtRoute = await updateUserPresence({route, userId: user.id});
     return json({users: usersAtRoute});
   }
 
   if (intent === 'Leave') {
-    UserPresence.delete(user.id);
-    await trpc.users.updatePresence(null);
+    await updateUserPresence({route: null, userId: user.id});
     return json({users: []});
   }
 }
 
 export async function loader({request}: LoaderFunctionArgs) {
-  await requireAuthenticatedUser(request);
+  const user = await requireAuthenticatedUser(request);
 
   const url = new URL(request.url);
   const rawRoute = url.searchParams.get('route');
@@ -62,12 +57,22 @@ export async function loader({request}: LoaderFunctionArgs) {
         data: stringify(users),
       });
     };
+    const handleUserPing = async (userId: User['id']) => {
+      if (userId !== user.id) return;
 
+      send({
+        event: 'userPing',
+        data: new Date().toTimeString(),
+      });
+    };
+
+    emitter.addListener('userPing', handleUserPing);
     emitter.addListener('userJoin', handle);
     handle(route);
 
     return () => {
       emitter.removeListener('userJoin', handle);
+      emitter.removeListener('userPing', handleUserPing);
     };
   });
 }

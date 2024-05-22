@@ -15,6 +15,7 @@ export const parseRequestFormData = async <Inferrd>(
 };
 
 export const formDataToObj = (formData: FormData) => {
+  
   return Object.fromEntries(formData);
 };
 
