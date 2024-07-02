@@ -14,6 +14,7 @@
     "lint": "eslint --ignore,-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:formatting": "prettier --write app/**",
     "start": "remix-serve ./build/index.js",
+    "start-local": "dotenv -e .env npm run start",
     "typecheck": "tsc"
   },
   "dependencies": {
@@ -78,10 +79,12 @@
     "typed-emitter": "^2.1.0",
     "zod": "^3.22.4",
     "zod-form-data": "^2.0.2",
-    "zoo-ids": "^2.0.7"
+    "zoo-ids": "^2.0.7",
+    "drizzle-kit": "^0.21.2"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@flydotio/dockerfile": "^0.5.7",
     "@remix-run/dev": "^2.5.1",
     "@remix-run/eslint-config": "^2.6.0",
     "@shopify/eslint-plugin": "^44.0.0",
@@ -94,7 +97,7 @@
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "autoprefixer": "^10.4.17",
-    "drizzle-kit": "^0.21.2",
+    "dotenv-cli": "^7.4.2",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^3.6.1",

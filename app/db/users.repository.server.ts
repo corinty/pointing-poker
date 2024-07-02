@@ -1,11 +1,10 @@
-import {TypeOf, z} from 'zod';
+import {z} from 'zod';
 import {db} from './drizzle.server';
 import {users} from './schema/users';
 import {createInsertSchema, createSelectSchema} from 'drizzle-zod';
 import {generateId} from 'zoo-ids';
 import {nanoid} from 'nanoid';
 import randomEmoji from '~/utils/randomEmoji';
-import {Room} from './rooms.repository.server';
 import {eq} from 'drizzle-orm';
 import {emitter} from '~/services/emitter.server';
 
@@ -42,9 +41,6 @@ export const createUser = async (data: z.infer<typeof createUserSchema>) => {
   return user.id;
 };
 export const createAnonUser = async (name?: string): Promise<User> => {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('anon mode not allowed in production');
-  }
   const anonNameSeed = nanoid();
 
   try {
