@@ -25,7 +25,7 @@ module.exports = {
 
   rules: {
     'jsx-a11y/alt-text': 'off',
-    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
   },
   overrides: [
     // React

@@ -10,13 +10,12 @@
 }
 
 .submissions {
-
   .player img {
     max-width: 90px;
     border-radius: 20px;
-    transition: all 200ms ease ;
-    &:hover{
-      transform: scale(1.5)
+    transition: all 200ms ease;
+    &:hover {
+      transform: scale(1.5);
     }
   }
 }

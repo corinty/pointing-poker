@@ -9,7 +9,6 @@
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
@@ -84,7 +83,14 @@ nav {
     text-align: right;
   }
 }
+body{
+  background-color: #242424;
+}
 
-mark{
+mark {
   background-color: var(--accent);
+}
+
+[hidden] {
+  display: none;
 }

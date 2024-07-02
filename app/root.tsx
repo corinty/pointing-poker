@@ -1,7 +1,11 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
+
 import {cssBundleHref} from '@remix-run/css-bundle';
-import type {LinksFunction} from '@remix-run/node';
+import '@mantine/core/styles.css';
+import '@mantine/nprogress/styles.css';
+import type {LinksFunction, LoaderFunctionArgs} from '@remix-run/node';
 import {
+  Form,
   Link,
   Links,
   LiveReload,
@@ -9,18 +13,29 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  json,
+  useLoaderData,
   useLocation,
 } from '@remix-run/react';
-import {GithubAuthProvider, getAuth, signInWithPopup} from 'firebase/auth';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import simpledotcss from 'simpledotcss/simple.css';
 import styles from '~/globals.css';
 import animateCss from 'animate.css/animate.css';
-import {User, userRepository} from './db/users';
-import {UserContext} from './hooks/useCurrentUser';
-import {usePresence} from './hooks/usePresence';
 import {Toaster} from 'react-hot-toast';
 import classNames from 'classnames';
+import {ColorSchemeScript, MantineProvider} from '@mantine/core';
+import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator';
+import {getBrowserEnv} from './utils/getBrowserEnv';
+import {authenticator} from './services/auth.server';
+
+export async function loader({request}: LoaderFunctionArgs) {
+  const user = await authenticator.isAuthenticated(request);
+
+  return json({
+    ENV: getBrowserEnv(),
+    user,
+  });
+}
 
 export const links: LinksFunction = () => [
   {
@@ -38,54 +53,10 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
 ];
 
-const signIn = (setUser) => {
-  const provider = new GithubAuthProvider();
-  const auth = getAuth();
-
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      // This gives you a GitHub Access Token. You can use it to access the GitHub API.
-      const credential = GithubAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-
-      // The signed-in user info.
-      const firebaseUser = result.user;
-
-      console.log('Setting user to ', firebaseUser);
-      setUser(userRepository.fromFirebaseToUser(firebaseUser));
-      userRepository.save(firebaseUser);
-    })
-    .catch((error) => {
-      // Handle Errors here.
-
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      // The email of the user's account used.
-      const email = error.customData.email;
-      // The AuthCredential type that was used.
-      const credential = GithubAuthProvider.credentialFromError(error);
-      console.log('error', error, errorCode, errorMessage, email, credential);
-      // ...
-    });
-};
-
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const data = useLoaderData<typeof loader>();
   const location = useLocation();
-
-  const loginRequired = !!location.state?.loginRequired;
-
-  useEffect(() => {
-    getAuth().onAuthStateChanged((firebaseUser) => {
-      if (firebaseUser) {
-        const user = userRepository.fromFirebaseToUser(firebaseUser);
-        location.state = null;
-        setUser(user);
-      }
-      setLoading(false);
-    });
-  }, []);
+  const {ENV, user} = data;
 
   return (
     <html lang="en">
@@ -94,55 +65,48 @@ export default function App() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <ColorSchemeScript />
       </head>
       <body>
-        <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
-          <div>
-            <Link to="/">Home</Link>
-          </div>
-          <div className="sign-in">
-            {!loading && user && user.name}
-            {!loading && !user && (
-              <button
-                type="button"
-                className={classNames('animate__animated', {
-                  animate__wobble: loginRequired,
-                  'bg-purple-700': loginRequired,
-                  'text-white': loginRequired,
-                })}
-                onClick={() => signIn(setUser)}
-              >
-                Sign in
-              </button>
+        <MantineProvider defaultColorScheme="dark">
+          <GlobalLoadingIndicator />
+          <nav className="pb-2 mt-6 border-0 border-b-2 border-solid border-slate-400">
+            <div>
+              <Link to="/">Home</Link>
+            </div>
+            {!location.pathname.includes('login') && (
+              <div className="sign-in">
+                {user ? (
+                  <Form method="post" action="/auth/logout">
+                    <button type="submit">
+                      Logout: {user.name}{' '}
+                      {user.role == 'anon' && user.profilePicture}
+                    </button>
+                  </Form>
+                ) : (
+                  <Link
+                    to={`/auth/login?redirectTo=${encodeURIComponent(
+                      location.pathname,
+                    )}`}
+                  >
+                    <button>Log In</button>
+                  </Link>
+                )}
+              </div>
             )}
-          </div>
-        </nav>
-        {!loading && user && <UserProvider user={user} />}
-        {!loading && !user && <Outlet />}
-        {loginRequired && (
-          <div className="flex justify-center">
-            <button
-              className="notice w-1/2 text-center text-white"
-              onClick={() => signIn(setUser)}
-            >
-              ⬆️ Please sign in ⬆️
-            </button>
-          </div>
-        )}
-        <Toaster />
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
+          </nav>
+          <Outlet />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.ENV = ${JSON.stringify(ENV)}`,
+            }}
+          />
+          <Toaster />
+          <ScrollRestoration />
+          <Scripts />
+          <LiveReload />
+        </MantineProvider>
       </body>
     </html>
-  );
-}
-
-function UserProvider({user}) {
-  usePresence(user);
-  return (
-    <UserContext.Provider value={user}>
-      <Outlet />
-    </UserContext.Provider>
   );
 }

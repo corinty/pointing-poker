@@ -2,6 +2,6 @@
 module.exports = {
   extends: ['@remix-run/eslint-config', '@remix-run/eslint-config/node'],
   rules: {
-    '@typescript-eslint/no-unused-var': 'warn',
+    '@typescript-eslint/no-unused-var': 'off',
   },
 };

@@ -1,10 +1,28 @@
-import type {ActionFunctionArgs, LinksFunction} from '@remix-run/node';
-import {Form, redirect, useNavigate} from '@remix-run/react';
-import {humanId} from 'human-id';
+import type {
+  ActionFunctionArgs,
+  LinksFunction,
+  LoaderFunctionArgs,
+} from '@remix-run/node';
+import {
+  redirect,
+  Link,
+  useNavigate,
+  json,
+  useLoaderData,
+  Form,
+  useLocation,
+} from '@remix-run/react';
 import styles from '~/styles/home.css';
-import {initializeFirestore} from '~/db/firestore';
+import {useState} from 'react';
+import {generateRoomCode} from '~/utils/generateRoomCode';
+import {authenticator} from '~/services/auth.server';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
+
+export async function loader({request}: LoaderFunctionArgs) {
+  const user = await authenticator.isAuthenticated(request);
+  return json({newRoomCode: generateRoomCode(), user});
+}
 
 export const action = async ({request}: ActionFunctionArgs) => {
   const formData = await request.formData();
@@ -15,41 +33,87 @@ export const action = async ({request}: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  initializeFirestore();
+  const location = useLocation();
+  const [joinRoomValue, setJoinRoomValue] = useState('');
   const navigate = useNavigate();
+  const {newRoomCode, user} = useLoaderData<typeof loader>();
+  const roomUrl = `/room/${joinRoomValue}`;
 
   return (
-    <div>
+    <>
       <h1>♣️ Welcome to Pointing Poker</h1>
-      <section>
-        <div className="room-selection">
-          <div></div>
-          <button
-            onClick={() => {
-              // generate room code
-              const roomCode = humanId({
-                separator: '-',
-                capitalize: false,
-              });
-              // navigate to the room
-              navigate(`/room/${roomCode}`);
-            }}
+      {user ? (
+        <div>
+          <section>
+            <div className="room-selection">
+              <div></div>
+              <Link
+                to={`/room/${newRoomCode}`}
+                className="button text-center"
+                prefetch="intent"
+              >
+                Create Room
+              </Link>
+              <div className="flex col-span-2 gap-4">
+                <input
+                  onChange={(e) => {
+                    setJoinRoomValue(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.code !== 'Enter') return;
+                    navigate(roomUrl);
+                  }}
+                  value={joinRoomValue}
+                  name="join-room-code"
+                  className="w-1/2"
+                  pattern="^[a-z\-]*$"
+                  required
+                />
+                <Link
+                  to={roomUrl}
+                  prefetch={joinRoomValue.length > 0 ? 'intent' : 'none'}
+                  className="button m-0 w-1/2 text-center"
+                >
+                  Join Room
+                </Link>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="flex flex-col flex-wrap items-center mt-20 gap-3">
+          <Form
+            action="/auth/login"
+            method="post"
+            className="flex flex-wrap gap-3"
           >
-            Create Room
-          </button>
-          <Form className="flex col-span-2 gap-4" method="post">
             <input
-              name="join-room-code"
-              className="w-1/2"
-              pattern="^[a-z\-]*$"
-              required
+              type="input"
+              name="redirectTo"
+              readOnly
+              value={location.pathname}
+              hidden
             />
-            <button type="submit" className="w-1/2">
-              Join Room
+            <div className="w-full">
+              <label htmlFor="nameInput">Name:</label>
+              <input
+                type="input"
+                id="nameInput"
+                className="my-4 w-full"
+                autoFocus
+                autoComplete={'name'}
+                name="name"
+              />
+            </div>
+            <button type="submit" className="w-full">
+              Anon Login
             </button>
           </Form>
+          {/* <Form action="/auth/github" method="post">
+        <button>Login with GitHub</button>
+      </Form> */}
         </div>
-      </section>
-    </div>
+      )}
+    </>
   );
 }
