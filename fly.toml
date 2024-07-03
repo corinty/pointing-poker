@@ -8,8 +8,8 @@ primary_region = 'ord'
 
 [build]
 
-[deploy]
-  release_command = "npm run db:setup"
+# [deploy]
+#   release_command = "npm run db:setup"
 
 [[mounts]]
   source = 'data'
