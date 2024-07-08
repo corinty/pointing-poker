@@ -13,6 +13,7 @@ export function RefreshUsers({userIds, currentUserId}: Props) {
 
   return (
     <fetcher.Form
+      className="pt-8"
       onSubmit={(e) => {
         e.preventDefault();
         if (userIds.length == 0) userIds = [currentUserId];
@@ -26,7 +27,9 @@ export function RefreshUsers({userIds, currentUserId}: Props) {
         );
       }}
     >
-      <p className="underline">Refresh Users</p>
+      <button className="bg-neutral-700 enabled:hover:bg-cyan-500 text-white border-0">
+        Refresh Users
+      </button>
     </fetcher.Form>
   );
 }

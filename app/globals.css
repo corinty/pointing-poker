@@ -94,3 +94,7 @@ mark {
 [hidden] {
   display: none;
 }
+
+button{
+  border-color: transparent;
+}
