@@ -1,5 +1,5 @@
 import {LinksFunction, LoaderFunctionArgs, json} from '@remix-run/node';
-import {Form, Outlet, useFetcher, useParams} from '@remix-run/react';
+import {Outlet, useFetcher, useParams} from '@remix-run/react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import styles from '~/styles/room.css';
@@ -14,6 +14,7 @@ import {useDisplayVotesMutaiton} from '../api.room.$roomId/route';
 import {useVoteStats} from './hooks/useVoteStats';
 import {createRoom, getRoom} from '~/db/rooms.repository.server';
 import {RefreshUsers} from './components/RefreshUsers';
+import {Button} from '~/components/ui/button';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -75,7 +76,7 @@ export default function Room() {
 
   return (
     <div className="flex flex-col gap-2 ">
-      <div className="flex items-center gap-4 h-24">
+      <div className="flex items-center h-24 gap-4">
         <div>
           <h3 className="m-0">Room: {roomId}</h3>
         </div>
@@ -85,6 +86,7 @@ export default function Room() {
       <div className="flex flex-col gap-2 ">
         <StoryDetails />
         <div className="flex gap-3">
+          <Button>What up my duuuude</Button>
           <button
             className="w-1/2 bg-neutral-600"
             onClick={() => {
@@ -146,7 +148,7 @@ export default function Room() {
               ))}
             </div>
           </div>
-          <div className=" text-left">
+          <div className="text-left ">
             <h3>Results:</h3>
             {room.displayVotes ? (
               <>
@@ -172,13 +174,18 @@ export default function Room() {
                       {String(hasConsensus).toUpperCase()}
                     </span>
                   </li>
-                  <li className="text-left pt-3 font-bold">
+                  <li className="pt-3 font-bold text-left">
                     Vote Spread:
-                    <ul className="list-inside font-normal">
+                    <ul className="font-normal list-inside">
                       {voteSpread.map((entry) => {
+                        console.log(
+                          entry.frequency,
+                          [...Array(entry.frequency).keys()].map(() => '='),
+                        );
                         return (
                           <li key={`vote-spread-${entry.value}`}>
-                            {entry.value} * {entry.frequency}
+                            {entry.value} * {entry.frequency}:{' '}
+                            {[...Array(entry.frequency).keys()].map(() => '=')}
                           </li>
                         );
                       })}
@@ -187,15 +194,15 @@ export default function Room() {
                 </ul>
               </>
             ) : (
-              <p className="text-center text-5xl">✨...🔮...🦄</p>
+              <p className="text-5xl text-center">✨...🔮...🦄</p>
             )}
           </div>
         </div>
         <div className="grid grid-cols-2">
           <div className="submissions">
             <div className="flex">
-              <p className="text-2xl font-bold w-1/2">Points</p>
-              <p className="text-2xl font-bold w-1/2">Person</p>
+              <p className="w-1/2 text-2xl font-bold">Points</p>
+              <p className="w-1/2 text-2xl font-bold">Person</p>
             </div>
             <div className="flex flex-col gap-4">
               {Object.values(users).map((user) => {
@@ -205,11 +212,11 @@ export default function Room() {
                     {room.displayVotes ? (
                       <div className="text-6xl">{vote?.points ?? '?'}</div>
                     ) : (
-                      <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">
+                      <div className="flex items-center justify-center w-2/3 text-center bg-slate-700 text-8xl">
                         {vote && <div>✅</div>}
                       </div>
                     )}
-                    <div className="player text-center">
+                    <div className="text-center player">
                       <div>{name || email}</div>
                       <div>
                         {/* TODO::Get user images */}
