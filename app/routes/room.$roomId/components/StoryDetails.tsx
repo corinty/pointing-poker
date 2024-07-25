@@ -30,10 +30,10 @@ export function StoryDetails() {
             nextStory(room.id);
           }}
         >
-          Next Story
+          Next Issue
         </button>
       </div>
-      <small className="opacity-50 mt-0">Story ID: {story.id}</small>
+      <small className="opacity-50 mt-0">Issue ID: {story.id}</small>
     </>
   );
 }
