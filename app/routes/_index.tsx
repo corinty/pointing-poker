@@ -41,7 +41,7 @@ export default function Index() {
 
   return (
     <>
-      <h1>♣️ Welcome to Pointing Poker</h1>
+      <h1>⚠️ Welcome to Issue Pointing</h1>
       {user ? (
         <div>
           <section>

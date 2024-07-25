@@ -3,7 +3,11 @@
 import {cssBundleHref} from '@remix-run/css-bundle';
 import '@mantine/core/styles.css';
 import '@mantine/nprogress/styles.css';
-import type {LinksFunction, LoaderFunctionArgs} from '@remix-run/node';
+import type {
+  LinksFunction,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from '@remix-run/node';
 import {
   Form,
   Link,
@@ -27,6 +31,7 @@ import {ColorSchemeScript, MantineProvider} from '@mantine/core';
 import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator';
 import {getBrowserEnv} from './utils/getBrowserEnv';
 import {authenticator} from './services/auth.server';
+import favicon from './img/favicon.svg';
 
 export async function loader({request}: LoaderFunctionArgs) {
   const user = await authenticator.isAuthenticated(request);
@@ -37,7 +42,22 @@ export async function loader({request}: LoaderFunctionArgs) {
   });
 }
 
+export const meta: MetaFunction = () => {
+  return [
+    {title: 'Issue Pointing'},
+    {
+      name: 'description',
+      content:
+        'Use issue pointing to better size and estimate your iterations.',
+    },
+  ];
+};
+
 export const links: LinksFunction = () => [
+  {
+    rel: 'icon',
+    href: favicon,
+  },
   {
     rel: 'stylesheet',
     href: simpledotcss,
