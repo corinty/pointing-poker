@@ -157,11 +157,14 @@ export default function Room() {
               ))}
             </div>
           </div>
-          <div className=" text-left">
-            <h3>Results: </h3>
+          <div className="text-left">
+            <h3 className="mb-1">Results: </h3>
             {room.displayVotes ? (
               <>
-                <ul className="text-right list-none">
+                <ul
+                  className="text-right list-none p-0 "
+                  style={{width: 'fit-content'}}
+                >
                   <li>
                     Suggested Vote: <mark>{suggestedVote}</mark>
                   </li>
@@ -183,33 +186,28 @@ export default function Room() {
                       {String(hasConsensus).toUpperCase()}
                     </span>
                   </li>
-                  <li className="text-left pt-3 font-bold">
-                    Vote Spread:
-                    <ul className="list-inside font-normal flex flex-col gap-3">
-                      {voteSpread.map((entry) => {
-                        console.log(entry);
-                        return (
-                          <li
-                            key={`vote-spread-${entry.value}`}
-                            className="flex"
-                          >
-                            Points: {entry.value} * {entry.frequency}:
-                            <span
-                              className="font-bold text-black ml-3 px-2 rounded"
-                              style={{
-                                backgroundColor: 'var(--accent)',
-                              }}
-                            >
-                              {Array.from(Array(entry.frequency)).map(
-                                () => '=',
-                              )}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </li>
                 </ul>
+                <div className="text-left pt-3 font-bold">
+                  Vote Spread:
+                  <ul className="list-inside font-normal flex flex-col gap-3">
+                    {voteSpread.map((entry) => {
+                      console.log(entry);
+                      return (
+                        <li key={`vote-spread-${entry.value}`} className="flex">
+                          Points: {entry.value} * {entry.frequency}:
+                          <span
+                            className="font-bold text-black ml-3 px-2 rounded"
+                            style={{
+                              backgroundColor: 'var(--accent)',
+                            }}
+                          >
+                            {Array.from(Array(entry.frequency)).map(() => '=')}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               </>
             ) : (
               <p className="text-center text-5xl">✨...🔮...🦄</p>
