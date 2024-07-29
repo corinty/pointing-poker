@@ -114,8 +114,12 @@ export default function Room() {
             <h3>
               Vote:{' '}
               <small className="font-normal">
-                {Object.keys(votes).length}/{Object.keys(users).length}{' '}
-                submitted
+                {
+                  Object.keys(votes).filter((userId) => {
+                    return userId in users;
+                  }).length
+                }
+                /{Object.keys(users).length} submitted
               </small>
             </h3>
             <div className="points">
