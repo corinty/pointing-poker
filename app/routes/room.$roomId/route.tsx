@@ -48,7 +48,12 @@ export default function Room() {
 
   const {width, height} = useWindowSize();
 
-  const {room, user: currentUser, story} = useLiveLoader<typeof loader>();
+  const {
+    room,
+    user: currentUser,
+    story,
+    votes,
+  } = useLiveLoader<typeof loader>();
 
   const [shouldShowConfetti, setConfetti] = useDisclosure(false, {
     onOpen: () => {
@@ -106,7 +111,13 @@ export default function Room() {
         </div>
         <div className="flex w-full">
           <div className="w-1/2">
-            <h3>Vote</h3>
+            <h3>
+              Vote:{' '}
+              <small className="font-normal">
+                {Object.keys(votes).length}/{Object.keys(users).length}{' '}
+                submitted
+              </small>
+            </h3>
             <div className="points">
               {pointValues.map((value) => (
                 <fetcher.Form
@@ -147,7 +158,7 @@ export default function Room() {
             </div>
           </div>
           <div className=" text-left">
-            <h3>Results:</h3>
+            <h3>Results: </h3>
             {room.displayVotes ? (
               <>
                 <ul className="text-right list-none">
@@ -174,11 +185,25 @@ export default function Room() {
                   </li>
                   <li className="text-left pt-3 font-bold">
                     Vote Spread:
-                    <ul className="list-inside font-normal">
+                    <ul className="list-inside font-normal flex flex-col gap-3">
                       {voteSpread.map((entry) => {
+                        console.log(entry);
                         return (
-                          <li key={`vote-spread-${entry.value}`}>
-                            {entry.value} * {entry.frequency}
+                          <li
+                            key={`vote-spread-${entry.value}`}
+                            className="flex"
+                          >
+                            Points: {entry.value} * {entry.frequency}:
+                            <span
+                              className="font-bold text-black ml-3 px-2 rounded"
+                              style={{
+                                backgroundColor: 'var(--accent)',
+                              }}
+                            >
+                              {Array.from(Array(entry.frequency)).map(
+                                () => '=',
+                              )}
+                            </span>
                           </li>
                         );
                       })}
@@ -191,55 +216,55 @@ export default function Room() {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-2">
+        <div>
           <div className="submissions">
-            <div className="flex">
-              <p className="text-2xl font-bold w-1/2">Points</p>
-              <p className="text-2xl font-bold w-1/2">Person</p>
+            <div className="submission submission__header">
+              <p className="text-2xl font-bold text-right m-0">Points</p>
+              <p className="text-2xl font-bold m-0">Person</p>
             </div>
-            <div className="flex flex-col gap-4">
-              {Object.values(users).map((user) => {
-                const {name, id, vote, email, profilePicture, role} = user;
-                return (
-                  <div className={'grid grid-cols-2 gap-2'} key={id}>
-                    {room.displayVotes ? (
-                      <div className="text-6xl">{vote?.points ?? '?'}</div>
-                    ) : (
-                      <div className="bg-slate-700 w-2/3 text-8xl text-center flex justify-center items-center">
-                        {vote && <div>✅</div>}
-                      </div>
-                    )}
-                    <div className="player text-center">
-                      <div>{name || email}</div>
-                      <div>
-                        {/* TODO::Get user images */}
-                        {role === 'anon' ? (
-                          profilePicture
-                        ) : (
-                          <img
-                            src={profilePicture || ''}
-                            alt={`player: ${user.name}`}
-                          />
-                        )}
-                      </div>
+            {Object.values(users).map((user) => {
+              const {name, id, vote, email, profilePicture, role} = user;
+              return (
+                <div className={'submission'} key={id}>
+                  {room.displayVotes ? (
+                    <div className="text-2x submission__points">
+                      {vote?.points ?? '?'}
+                    </div>
+                  ) : (
+                    <div className="text-43xl flex justify-end submission__points">
+                      {vote ? <div>✅</div> : <div>❔</div>}
+                    </div>
+                  )}
+                  <div className="player flex gap-2">
+                    <div>{name || email}</div>
+                    <div>
+                      {/* TODO::Get user images */}
+                      {role === 'anon' ? (
+                        profilePicture
+                      ) : (
+                        <img
+                          src={profilePicture || ''}
+                          alt={`player: ${user.name}`}
+                        />
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-            <RefreshUsers
-              userIds={Object.keys(users)}
-              currentUserId={currentUser.id}
-            />
+                </div>
+              );
+            })}
           </div>
+          <RefreshUsers
+            userIds={Object.keys(users)}
+            currentUserId={currentUser.id}
+          />
         </div>
-        {shouldShowConfetti && (
-          <div style={{display: 'fixed', top: 0, left: 0}}>
-            {' '}
-            <Confetti width={width} height={height} />
-          </div>
-        )}
       </div>
+      {shouldShowConfetti && (
+        <div style={{display: 'fixed', top: 0, left: 0}}>
+          {' '}
+          <Confetti width={width} height={height} />
+        </div>
+      )}
     </div>
   );
 }

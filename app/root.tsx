@@ -21,12 +21,10 @@ import {
   useLoaderData,
   useLocation,
 } from '@remix-run/react';
-import {useState} from 'react';
 import simpledotcss from 'simpledotcss/simple.css';
 import styles from '~/globals.css';
 import animateCss from 'animate.css/animate.css';
 import {Toaster} from 'react-hot-toast';
-import classNames from 'classnames';
 import {ColorSchemeScript, MantineProvider} from '@mantine/core';
 import {GlobalLoadingIndicator} from './components/GlobalLoadingIndicator';
 import {getBrowserEnv} from './utils/getBrowserEnv';
