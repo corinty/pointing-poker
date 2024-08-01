@@ -227,7 +227,7 @@ export default function Room() {
             {Object.values(users).map((user) => {
               const {name, id, vote, email, profilePicture, role} = user;
               return (
-                <div className={'submission'} key={id}>
+                <div className={'submission'} key={`user-vote-status-${id}`}>
                   {room.displayVotes ? (
                     <div className="text-2x submission__points">
                       {vote?.points ?? '?'}
