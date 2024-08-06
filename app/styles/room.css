@@ -28,12 +28,12 @@
 
   }
 
-  .player img {
-    max-width: 90px;
-    border-radius: 20px;
-    transition: all 200ms ease;
-    &:hover {
-      transform: scale(1.5);
-    }
-  }
+  .player{
+    /* &__name{
+      @apply p-1;
+      border-radius: var(--standard-border-radius);
+      background: var(--accent);
+      color: black;
+    } */
+}
 }

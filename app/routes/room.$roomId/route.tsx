@@ -1,5 +1,5 @@
 import {LinksFunction, LoaderFunctionArgs, json} from '@remix-run/node';
-import {Form, Outlet, useFetcher, useParams} from '@remix-run/react';
+import {Outlet, useFetcher, useParams} from '@remix-run/react';
 import Confetti from 'react-confetti';
 import CopyCurrentUrlToClipboard from '~/components/CopyCurrentUrlToClipboard';
 import styles from '~/styles/room.css';
@@ -14,6 +14,7 @@ import {useDisplayVotesMutaiton} from '../api.room.$roomId/route';
 import {useVoteStats} from './hooks/useVoteStats';
 import {createRoom, getRoom} from '~/db/rooms.repository.server';
 import {RefreshUsers} from './components/RefreshUsers';
+import {motion, AnimatePresence} from 'framer-motion';
 
 export const links: LinksFunction = () => [{rel: 'stylesheet', href: styles}];
 
@@ -224,37 +225,48 @@ export default function Room() {
               <p className="text-2xl font-bold text-right m-0">Points</p>
               <p className="text-2xl font-bold m-0">Person</p>
             </div>
-            {Object.values(users).map((user) => {
-              const {name, id, vote, email, profilePicture, role} = user;
-              return (
-                <div className={'submission'} key={`user-vote-status-${id}`}>
-                  {room.displayVotes ? (
-                    <div className="text-2x submission__points">
-                      {vote?.points ?? '?'}
-                    </div>
-                  ) : (
-                    <div className="text-43xl flex justify-end submission__points">
-                      {vote ? <div>✅</div> : <div>❔</div>}
-                    </div>
-                  )}
-                  <div className="player flex gap-2">
-                    <div>{name || email}</div>
-                    <div>
-                      {/* TODO::Get user images */}
-                      {role === 'anon' ? (
-                        profilePicture
+            {Object.keys(users).length > 0 && (
+              <AnimatePresence initial={false} mode="popLayout">
+                {Object.values(users).map((user) => {
+                  const {name, id, vote, email, profilePicture, role} = user;
+                  return (
+                    <motion.div
+                      className="submission"
+                      key={`user-vote-status-${id}`}
+                      initial={{scale: 0.8, opacity: 0, x: -100}}
+                      animate={{scale: 1, opacity: 1, x: 0}}
+                      exit={{scale: 0.8, opacity: 0, x: 100}}
+                    >
+                      {room.displayVotes ? (
+                        <div className="text-2x submission__points">
+                          {vote?.points ?? '?'}
+                        </div>
                       ) : (
-                        <img
-                          src={profilePicture || ''}
-                          alt={`player: ${user.name}`}
-                        />
+                        <div className="text-43xl flex justify-end submission__points">
+                          {vote ? <div>✅</div> : <div>❔</div>}
+                        </div>
                       )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                      <div className="player flex gap-3">
+                        <div>
+                          {/* TODO::Get user images */}
+                          {role === 'anon' ? (
+                            profilePicture
+                          ) : (
+                            <img
+                              src={profilePicture || ''}
+                              alt={`player: ${user.name}`}
+                            />
+                          )}
+                        </div>
+                        <div className="player__name">{name || email}</div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            )}
           </div>
+
           <RefreshUsers
             userIds={Object.keys(users)}
             currentUserId={currentUser.id}
